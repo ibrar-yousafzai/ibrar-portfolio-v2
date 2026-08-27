@@ -2,6 +2,7 @@ const LINKS = [
   { href: "#hero", label: "Home" },
   { href: "#about", label: "About" },
   { href: "#skills", label: "Skills" },
+  { href: "#rag-models", label: "RAG Models" },
   { href: "#projects", label: "Projects" },
   { href: "#credentials", label: "Certifications" },
   { href: "#events", label: "Events" },

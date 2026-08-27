@@ -8,6 +8,7 @@ import NavBar from "@/components/NavBar";
 import Hero from "@/components/Hero";
 import About from "@/components/About";
 import Skills from "@/components/Skills";
+import RAGModels from "@/components/RAGModels";
 import Projects from "@/components/Projects";
 import Certifications from "@/components/Certifications";
 import Events from "@/components/Events";
@@ -54,6 +55,7 @@ export default async function Home() {
         />
         <About settings={settings} />
         <Skills settings={settings} />
+        <RAGModels settings={settings} />
         <Projects projects={projects} />
         <Certifications certifications={certifications} visionStatement={settings.visionStatement} />
         <Events events={events} />

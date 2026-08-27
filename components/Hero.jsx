@@ -3,7 +3,7 @@ import DataField from "./DataField";
 export default function Hero({ settings, projectCount, certCount }) {
   return (
     <section id="hero" className="relative overflow-hidden border-b border-border">
-      <div className="mx-auto grid max-w-6xl items-center gap-10 px-6 py-24 md:grid-cols-[1.2fr_1fr] md:py-32">
+      <div className="mx-auto grid max-w-6xl items-center gap-10 px-6 py-16 md:grid-cols-[1.2fr_1fr] md:py-16 lg:py-20">
         <div>
           <p className="font-mono-tag text-xs uppercase tracking-[0.2em] text-accent">
             {settings.eyebrow}

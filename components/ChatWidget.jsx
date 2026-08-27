@@ -7,11 +7,15 @@ import {
   useState,
 } from "react";
 
-/* =========================================================
-   IY AI — PERSONAL PORTFOLIO ASSISTANT
-   ========================================================= */
+/*
+=========================================================
+IY AI — PERSONAL PORTFOLIO ASSISTANT
+=========================================================
+*/
 
-const API_URL = "https://iy-portfolio-chatbot.onrender.com/chat";
+const API_URL =
+  "https://iy-portfolio-chatbot.onrender.com/chat";
+
 const FEEDBACK_URL =
   "https://iy-portfolio-chatbot.onrender.com/feedback";
 
@@ -24,94 +28,154 @@ const LINKEDIN_URL =
 const GITHUB_URL =
   "https://github.com/ibrar-yousafzai";
 
+const CONTACT_FORM_URL =
+  "#contact";
+
+
 /*
-  If your portfolio has a Contact section,
-  keep "#contact".
-
-  If you have a separate contact page,
-  replace it with your real URL.
+=========================================================
+SAFE BOT TEXT RENDERER
+Supports:
+- **bold**
+- escaped **bold**
+- line breaks
+- bullet points
+=========================================================
 */
-const CONTACT_FORM_URL = "#contact";
-
 
 function renderBotText(text) {
+  if (!text) return null;
 
-  if (!text)
-    return null;
+  const cleanText = String(text)
+    .replace(/\\\*\\\*/g, "**")
+    .replace(/\\n/g, "\n")
+    .trim();
 
+  const lines = cleanText.split("\n");
 
-  const cleanText =
-    String(text)
-      .replace(/\\\*\\\*/g, "**")
-      .replace(/\\n/g, "\n");
+  return lines.map((line, lineIndex) => {
+    const isBullet =
+      /^\s*[-*•]\s+/.test(line);
 
-  const lines =
-    cleanText.split("\n");
+    const content = isBullet
+      ? line.replace(/^\s*[-*•]\s+/, "")
+      : line;
 
+    const parts =
+      content.split(/(\*\*.*?\*\*)/g);
 
-  return lines.map(
-    (line, lineIndex) => {
+    return (
+      <Fragment key={lineIndex}>
+        <span
+          className={
+            isBullet
+              ? "iy-bullet-line"
+              : "iy-text-line"
+          }
+        >
+          {isBullet && (
+            <span className="iy-bullet">
+              •
+            </span>
+          )}
 
-      const parts =
-        line.split(/(\*\*.*?\*\*)/g);
+          <span>
+            {parts.map(
+              (part, partIndex) => {
+                const isBold =
+                  part.startsWith("**") &&
+                  part.endsWith("**") &&
+                  part.length >= 4;
 
-
-      return (
-
-        <Fragment key={lineIndex}>
-
-          {parts.map(
-            (part, partIndex) => {
-
-              if (
-                part.startsWith("**") &&
-                part.endsWith("**")
-              ) {
+                if (isBold) {
+                  return (
+                    <strong
+                      key={partIndex}
+                    >
+                      {part.slice(2, -2)}
+                    </strong>
+                  );
+                }
 
                 return (
-
-                  <strong key={partIndex}>
-                    {part.slice(2, -2)}
-                  </strong>
-
+                  <Fragment
+                    key={partIndex}
+                  >
+                    {part}
+                  </Fragment>
                 );
-
               }
+            )}
+          </span>
+        </span>
 
-
-              return (
-
-                <Fragment key={partIndex}>
-                  {part}
-                </Fragment>
-
-              );
-
-            }
-          )}
-
-
-          {lineIndex < lines.length - 1 && (
-            <br />
-          )}
-
-        </Fragment>
-
-      );
-
-    }
-  );
-
+        {lineIndex <
+          lines.length - 1 && (
+          <br />
+        )}
+      </Fragment>
+    );
+  });
 }
 
 
+/*
+=========================================================
+CONTACT INTENT
+=========================================================
+*/
+
+function detectsContactIntent(text) {
+  const value =
+    String(text || "")
+      .toLowerCase()
+      .trim();
+
+  const phrases = [
+    "how can i contact",
+    "how do i contact",
+    "contact him",
+    "contact ibrar",
+    "contact ibar",
+    "reach him",
+    "reach ibrar",
+    "reach out",
+    "get in touch",
+    "how can i reach",
+    "how do i reach",
+    "connect with him",
+    "connect with ibrar",
+    "talk to him",
+    "talk with him",
+    "hire him",
+    "hire ibrar",
+    "hire",
+    "freelance",
+    "freelancing",
+    "work with him",
+    "work with ibrar",
+    "linkedin",
+    "github",
+    "email",
+    "contact",
+  ];
+
+  return phrases.some(
+    (phrase) =>
+      value.includes(phrase)
+  );
+}
+
+
+/*
+=========================================================
+COMPONENT
+=========================================================
+*/
+
 export default function ChatWidget() {
-
-  /* =======================================================
-     STATE
-     ======================================================= */
-
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] =
+    useState(false);
 
   const [fullscreen, setFullscreen] =
     useState(false);
@@ -137,22 +201,24 @@ export default function ChatWidget() {
   const scrollRef =
     useRef(null);
 
+  const inputRef =
+    useRef(null);
 
-  /* =======================================================
-     SESSION
-     ======================================================= */
+
+/*
+=========================================================
+SESSION
+=========================================================
+*/
 
   useEffect(() => {
-
     try {
-
       let id =
         sessionStorage.getItem(
           "iy_ai_session"
         );
 
       if (!id) {
-
         id =
           crypto.randomUUID();
 
@@ -160,177 +226,141 @@ export default function ChatWidget() {
           "iy_ai_session",
           id
         );
-
       }
 
       setSessionId(id);
-
     } catch {
-
       setSessionId(
         `iy-${Date.now()}`
       );
-
     }
-
   }, []);
 
 
-  /* =======================================================
-     AUTO SCROLL
-     ======================================================= */
+/*
+=========================================================
+AUTO SCROLL
+=========================================================
+*/
 
   useEffect(() => {
-
     if (!scrollRef.current)
       return;
 
     requestAnimationFrame(() => {
-
       scrollRef.current.scrollTo({
         top:
           scrollRef.current
             .scrollHeight,
         behavior: "smooth",
       });
-
     });
-
   }, [messages, typing]);
 
 
-  /* =======================================================
-     ESC KEY
-     ======================================================= */
+/*
+=========================================================
+ESCAPE
+=========================================================
+*/
 
   useEffect(() => {
+    function handleKeyDown(event) {
+      if (
+        event.key !== "Escape"
+      ) {
+        return;
+      }
 
-    const handleKeyDown =
-      (event) => {
+      if (fullscreen) {
+        setFullscreen(false);
+        return;
+      }
 
-        if (
-          event.key !== "Escape"
-        )
-          return;
-
-        if (fullscreen) {
-
-          setFullscreen(false);
-
-          return;
-
-        }
-
-        if (open) {
-
-          setOpen(false);
-
-        }
-
-      };
-
+      if (open) {
+        setOpen(false);
+      }
+    }
 
     window.addEventListener(
       "keydown",
       handleKeyDown
     );
 
-
     return () => {
-
       window.removeEventListener(
         "keydown",
         handleKeyDown
       );
-
     };
-
   }, [
     fullscreen,
     open,
   ]);
 
 
-  /* =======================================================
-     BODY LOCK WHEN FULLSCREEN
-     ======================================================= */
+/*
+=========================================================
+BODY LOCK
+=========================================================
+*/
 
   useEffect(() => {
-
-    if (fullscreen) {
-
-      document.body.style.overflow =
-        "hidden";
-
-    } else {
-
+    if (!open) {
       document.body.style.overflow =
         "";
-
+      return;
     }
 
+    const oldOverflow =
+      document.body.style.overflow;
+
+    document.body.style.overflow =
+      "hidden";
 
     return () => {
-
       document.body.style.overflow =
-        "";
-
+        oldOverflow;
     };
+  }, [open]);
 
-  }, [fullscreen]);
 
-
-  /* =======================================================
-     THEME
-     ======================================================= */
+/*
+=========================================================
+THEME
+=========================================================
+*/
 
   const theme = genz
     ? {
-
         primary: "#8b5cf6",
-
         secondary: "#ec4899",
-
         accent: "#d946ef",
-
         accentDark: "#a21caf",
-
         dark: "#171126",
-
         soft: "#faf5ff",
-
         bot: "#f5f3ff",
-
         border: "#e9d5ff",
-
       }
     : {
-
         primary: "#0f766e",
-
         secondary: "#06b6d4",
-
         accent: "#14b8a6",
-
         accentDark: "#0f766e",
-
         dark: "#08111f",
-
         soft: "#f0fdfa",
-
         bot: "#f4f7f8",
-
         border: "#dbe4e7",
-
       };
 
 
-  /* =======================================================
-     QUICK PROMPTS
-     ======================================================= */
+/*
+=========================================================
+PROMPTS
+=========================================================
+*/
 
   const prompts = [
-
     {
       icon: "◈",
       title: "Explore Projects",
@@ -362,266 +392,169 @@ export default function ChatWidget() {
       icon: "↗",
       title: "Work Together",
       description:
-        "Discuss freelance opportunities",
+        "Discuss opportunities",
       question:
         "Is Ibrar available for freelance work?",
     },
-
   ];
 
 
   const suggestedQuestions = [
-
     "Tell me about Ibrar",
-
     "What AI projects has he built?",
-
     "What technologies does he use?",
-
     "How can I contact him?",
-
   ];
 
 
-  /* =======================================================
-     OPEN CHAT
-     ======================================================= */
+/*
+=========================================================
+OPEN / CLOSE
+=========================================================
+*/
 
   function openChat() {
-
     setOpen(true);
-
     setFullscreen(false);
 
+    setTimeout(() => {
+      inputRef.current?.focus();
+    }, 150);
   }
-
-
-  /* =======================================================
-     CLOSE CHAT
-     ======================================================= */
 
   function closeChat() {
-
     setOpen(false);
-
     setFullscreen(false);
-
   }
 
-
-  /* =======================================================
-     FULLSCREEN
-     ======================================================= */
-
   function toggleFullscreen() {
-
     setFullscreen(
       (previous) =>
         !previous
     );
-
   }
 
 
-  /* =======================================================
-     CONTACT DETECTION
-     ======================================================= */
+/*
+=========================================================
+SEND MESSAGE
+=========================================================
+*/
 
-  function detectsContactIntent(userText) {
+  async function sendMessage(text) {
+    const messageText =
+      String(text || "").trim();
 
-  const text =
-    (userText || "").toLowerCase();
+    if (
+      !messageText ||
+      typing
+    ) {
+      return;
+    }
 
-  const contactWords = [
-
-    "contact",
-
-    "contact him",
-
-    "contact ibar",
-
-    "contact ibrar",
-
-    "how can i contact",
-
-    "how do i contact",
-
-    "reach him",
-
-    "reach ibrar",
-
-    "reach out",
-
-    "hire him",
-
-    "hire ibrar",
-
-    "hire",
-
-    "freelance",
-
-    "freelancing",
-
-    "work with him",
-
-    "work with ibrar",
-
-    "email",
-
-    "linkedin",
-
-    "github",
-
-    "connect with him",
-
-    "connect with ibrar",
-
-    "get in touch",
-
-    "talk to him",
-
-    "talk with him",
-
-  ];
-
-  return contactWords.some(
-    (word) =>
-      text.includes(word)
-  );
-
-}
-
-
-  /* =======================================================
-     SEND MESSAGE
-     ======================================================= */
-
-  async function sendMessage(
-    text
-  ) {
-
-      text =
-     (text || "").trim();
-
-     if (!text || typing)
-     return;
-    const isContactQuestion = detectsContactIntent(text);
-
+    const isContact =
+      detectsContactIntent(
+        messageText
+      );
 
     setTab("chat");
-
     setInput("");
 
-    const userMessage = {
+    const currentTime =
+      new Date().toLocaleTimeString(
+        [],
+        {
+          hour: "2-digit",
+          minute: "2-digit",
+        }
+      );
 
-      role: "user",
+    setMessages(
+      (previous) => [
+        ...previous,
 
-      text,
+        {
+          role: "user",
+          text: messageText,
+          time: currentTime,
+        },
 
-      time:
-        new Date().toLocaleTimeString(
-          [],
-          {
-            hour: "2-digit",
-            minute: "2-digit",
+        {
+          role: "bot",
+          text: "",
+          time: "",
+          feedback: null,
+          showContact: false,
+        },
+      ]
+    );
+
+    setTyping(true);
+
+    /*
+    -------------------------------------------------------
+    CONTACT QUESTIONS
+    -------------------------------------------------------
+    Do not call RAG.
+    Do not expose URLs in AI response.
+    -------------------------------------------------------
+    */
+
+    if (isContact) {
+      window.setTimeout(() => {
+        setMessages(
+          (previous) => {
+            const copy =
+              [...previous];
+
+            const index =
+              copy.length - 1;
+
+            copy[index] = {
+              ...copy[index],
+
+              text:
+                "Let's connect. 👋\n\nChoose an option below to reach Ibrar.",
+
+              time:
+                new Date().toLocaleTimeString(
+                  [],
+                  {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  }
+                ),
+
+              showContact: true,
+            };
+
+            return copy;
           }
-        ),
+        );
 
-    };
+        setTyping(false);
+      }, 350);
 
+      return;
+    }
+
+
+/*
+=========================================================
+NORMAL RAG REQUEST
+=========================================================
+*/
 
     const botIndex =
       messages.length + 1;
 
-
-    setMessages(
-      (previous) => [
-
-        ...previous,
-
-        userMessage,
-
-        {
-          role: "bot",
-
-          text: "",
-
-          time: "",
-
-          feedback: null,
-
-          showContact: false,
-
-        },
-
-      ]
-    );
-
-
-    setTyping(true);
-    /* =======================================================
-   SPECIAL CONTACT RESPONSE
-   Do NOT send contact questions to the RAG response UI.
-   This prevents URLs/contact information appearing
-   inside the AI answer.
-   ======================================================= */
-
-if (isContactQuestion) {
-
-  setTimeout(() => {
-
-    setMessages(
-      (previous) => {
-
-        const copy =
-          [...previous];
-
-        const lastIndex =
-          copy.length - 1;
-
-        copy[lastIndex] = {
-
-          ...copy[lastIndex],
-
-          text:
-            "Sure! Here are the best ways to connect with Ibrar.",
-
-          time:
-            new Date().toLocaleTimeString(
-              [],
-              {
-                hour: "2-digit",
-                minute: "2-digit",
-              }
-            ),
-
-          showContact:
-            true,
-
-        };
-
-        return copy;
-
-      }
-    );
-
-    setTyping(false);
-
-  }, 350);
-
-  return;
-}
-
     let fullText = "";
 
-
     try {
-
       const response =
         await fetch(
           API_URL,
           {
-
             method: "POST",
 
             headers: {
@@ -631,220 +564,203 @@ if (isContactQuestion) {
 
             body:
               JSON.stringify({
-
-                message: text,
+                message:
+                  messageText,
 
                 session_id:
                   sessionId,
-
               }),
-
           }
         );
 
-
       if (!response.ok) {
-
         throw new Error(
           `Server error: ${response.status}`
         );
-
       }
 
-
       if (!response.body) {
-
         throw new Error(
           "Streaming is not available."
         );
-
       }
-
 
       const reader =
         response.body.getReader();
 
-
       const decoder =
         new TextDecoder();
 
+      let buffer = "";
 
       while (true) {
-
         const {
           done,
           value,
         } =
           await reader.read();
 
-
         if (done)
           break;
 
-
-        const chunk =
-          decoder.decode(
-            value,
-            {
-              stream: true,
-            }
-          );
-
+        buffer += decoder.decode(
+          value,
+          {
+            stream: true,
+          }
+        );
 
         const lines =
-          chunk.split("\n");
+          buffer.split("\n");
 
+        buffer =
+          lines.pop() || "";
 
         for (
           const line of lines
         ) {
+          const trimmed =
+            line.trim();
 
           if (
-            !line.startsWith(
-              "data: "
+            !trimmed.startsWith(
+              "data:"
             )
-          )
+          ) {
             continue;
-
+          }
 
           const data =
-            line.slice(6);
-
+            trimmed
+              .slice(5)
+              .trim();
 
           if (
-            data ===
-            "[DONE]"
-          )
+            !data ||
+            data === "[DONE]"
+          ) {
             continue;
-
+          }
 
           try {
-
             const parsed =
               JSON.parse(data);
 
-
-            if (parsed.text) {
-
+            if (
+              typeof parsed.text ===
+              "string"
+            ) {
               fullText +=
                 parsed.text;
 
-
               setMessages(
                 (previous) => {
-
                   const copy =
                     [...previous];
-
 
                   if (
                     copy[botIndex]
                   ) {
-
                     copy[
                       botIndex
                     ] = {
-
                       ...copy[
                         botIndex
                       ],
-
                       text:
                         fullText,
-
                     };
-
                   }
 
-
                   return copy;
-
                 }
               );
-
             }
-
           } catch {
-
-            /* Ignore malformed SSE chunks */
-
+            /*
+              Ignore malformed
+              streaming chunks.
+            */
           }
-
         }
+      }
 
+      /*
+      Process any final buffered
+      SSE line.
+      */
+
+      if (buffer.trim()) {
+        const trimmed =
+          buffer.trim();
+
+        if (
+          trimmed.startsWith(
+            "data:"
+          )
+        ) {
+          const data =
+            trimmed
+              .slice(5)
+              .trim();
+
+          if (
+            data &&
+            data !== "[DONE]"
+          ) {
+            try {
+              const parsed =
+                JSON.parse(data);
+
+              if (
+                typeof parsed.text ===
+                "string"
+              ) {
+                fullText +=
+                  parsed.text;
+              }
+            } catch {
+              /* Ignore */
+            }
+          }
+        }
       }
 
     } catch (error) {
-
       console.error(
         "IY AI error:",
         error
       );
 
-
       fullText =
         "I’m having trouble connecting to my AI service right now. Please try again in a moment.";
-
-
-      setMessages(
-        (previous) => {
-
-          const copy =
-            [...previous];
-
-
-          if (
-            copy[botIndex]
-          ) {
-
-            copy[
-              botIndex
-            ] = {
-
-              ...copy[
-                botIndex
-              ],
-
-              text:
-                fullText,
-
-            };
-
-          }
-
-
-          return copy;
-
-        }
-      );
-
     }
 
 
-    setTyping(false);
-
+/*
+=========================================================
+FINAL BOT MESSAGE
+=========================================================
+*/
 
     setMessages(
       (previous) => {
-
         const copy =
           [...previous];
-
 
         if (
           copy[botIndex]
         ) {
-
           copy[
             botIndex
           ] = {
-
             ...copy[
               botIndex
             ],
 
             text:
-              fullText,
+              fullText ||
+              "I couldn't generate a response.",
 
             time:
               new Date().toLocaleTimeString(
@@ -859,65 +775,65 @@ if (isContactQuestion) {
               ),
 
             showContact:
-              detectsContactIntent(
-                text,
-                fullText
-              ),
-
+              false,
           };
-
         }
 
-
         return copy;
-
       }
     );
 
+    setTyping(false);
   }
 
 
-  /* =======================================================
-     FEEDBACK
-     ======================================================= */
+/*
+=========================================================
+FORM SUBMIT
+=========================================================
+*/
+
+  function handleSubmit(event) {
+    event.preventDefault();
+
+    sendMessage(input);
+  }
+
+
+/*
+=========================================================
+FEEDBACK
+=========================================================
+*/
 
   function sendFeedback(
     index,
     feedback
   ) {
+    const selected =
+      messages[index];
 
     setMessages(
       (previous) => {
-
         const copy =
           [...previous];
-
 
         if (
           copy[index]
         ) {
-
           copy[index] = {
-
             ...copy[index],
-
             feedback,
-
           };
-
         }
 
-
         return copy;
-
       }
     );
-
 
     fetch(
       FEEDBACK_URL,
       {
-
         method: "POST",
 
         headers: {
@@ -927,86 +843,846 @@ if (isContactQuestion) {
 
         body:
           JSON.stringify({
-
             session_id:
               sessionId,
 
             message:
-              messages[index]
-                ?.text || "",
+              selected?.text || "",
 
             feedback,
-
           }),
-
       }
     ).catch(() => {});
-
   }
 
 
-  /* =======================================================
-     CLEAR CHAT
-     ======================================================= */
+/*
+=========================================================
+CLEAR CHAT
+=========================================================
+*/
 
   function clearChat() {
+    if (typing)
+      return;
 
     setMessages([]);
-
     setTab("home");
-
   }
 
 
-  /* =======================================================
-     UI
-     ======================================================= */
+/*
+=========================================================
+RENDER
+=========================================================
+*/
 
   return (
+    <>
+      <div
+        className="iy-root"
+        style={{
+          "--iy-primary":
+            theme.primary,
 
-    <div className="iy-root">
+          "--iy-secondary":
+            theme.secondary,
+
+          "--iy-accent":
+            theme.accent,
+
+          "--iy-dark":
+            theme.dark,
+
+          "--iy-soft":
+            theme.soft,
+
+          "--iy-bot":
+            theme.bot,
+
+          "--iy-border":
+            theme.border,
+        }}
+      >
+
+        {!open && (
+          <div className="iy-launcher">
+            <div className="iy-launcher-label">
+              Chat with Ibrar
+            </div>
+
+            <button
+              type="button"
+              className="iy-launcher-button"
+              onClick={openChat}
+              aria-label="Open IY AI assistant"
+              title="Chat with IY AI"
+            >
+              <span className="iy-launcher-logo">
+                IY
+              </span>
+
+              <span className="iy-launcher-text">
+                AI
+              </span>
+            </button>
+          </div>
+        )}
+
+
+        {open && (
+          <div
+            className={`iy-window ${
+              fullscreen
+                ? "fullscreen"
+                : ""
+            }`}
+          >
+
+            {/* HEADER */}
+
+            <header
+              className="iy-header"
+              style={{
+                background:
+                  `linear-gradient(
+                    135deg,
+                    ${theme.primary},
+                    ${theme.secondary}
+                  )`,
+              }}
+            >
+              <div className="iy-header-glow" />
+
+              <div className="iy-header-content">
+
+                <div className="iy-brand">
+
+                  <div className="iy-brand-logo">
+                    IY
+                  </div>
+
+                  <div>
+                    <div className="iy-brand-name">
+                      IY AI
+                    </div>
+
+                    <div className="iy-brand-subtitle">
+                      Personal Portfolio Intelligence
+                    </div>
+
+                    <div className="iy-status">
+                      <span className="iy-status-dot" />
+                      Online · Ready to help
+                    </div>
+                  </div>
+
+                </div>
+
+
+                <div className="iy-actions">
+
+                  <button
+                    type="button"
+                    className="iy-action"
+                    onClick={() =>
+                      setGenz(
+                        (previous) =>
+                          !previous
+                      )
+                    }
+                    title="Change style"
+                    aria-label="Change style"
+                  >
+                    ◐
+                  </button>
+
+
+                  <button
+                    type="button"
+                    className="iy-action"
+                    onClick={
+                      toggleFullscreen
+                    }
+                    title={
+                      fullscreen
+                        ? "Exit fullscreen"
+                        : "Fullscreen"
+                    }
+                    aria-label={
+                      fullscreen
+                        ? "Exit fullscreen"
+                        : "Fullscreen"
+                    }
+                  >
+                    {fullscreen
+                      ? "↙"
+                      : "⛶"}
+                  </button>
+
+
+                  <button
+                    type="button"
+                    className="iy-action"
+                    onClick={
+                      closeChat
+                    }
+                    title="Close assistant"
+                    aria-label="Close assistant"
+                  >
+                    ×
+                  </button>
+
+                </div>
+              </div>
+            </header>
+
+
+            {/* NAV */}
+
+            <nav className="iy-nav">
+
+              <button
+                type="button"
+                className={`iy-nav-button ${
+                  tab === "home"
+                    ? "active"
+                    : ""
+                }`}
+                onClick={() =>
+                  setTab("home")
+                }
+              >
+                <span>✦</span>
+                Discover
+              </button>
+
+
+              <button
+                type="button"
+                className={`iy-nav-button ${
+                  tab === "chat"
+                    ? "active"
+                    : ""
+                }`}
+                onClick={() =>
+                  setTab("chat")
+                }
+              >
+                <span>◌</span>
+                Conversation
+
+                {messages.length >
+                  0 && (
+                  <span className="iy-count">
+                    {messages.length}
+                  </span>
+                )}
+              </button>
+
+            </nav>
+
+
+            {/* HOME */}
+
+            {tab === "home" && (
+              <main className="iy-home">
+
+                <section className="iy-welcome">
+
+                  <div
+                    className="iy-welcome-icon"
+                    style={{
+                      background:
+                        `linear-gradient(
+                          135deg,
+                          ${theme.primary},
+                          ${theme.secondary}
+                        )`,
+                    }}
+                  >
+                    <span>IY</span>
+                    <i />
+                  </div>
+
+
+                  <div className="iy-eyebrow">
+                    AI PORTFOLIO GUIDE
+                  </div>
+
+
+                  <h1 className="iy-welcome-title">
+                    Hi, I'm{" "}
+                    <span>
+                      IY AI
+                    </span>{" "}
+                    👋
+                  </h1>
+
+
+                  <p className="iy-welcome-text">
+                    Your intelligent guide to
+                    Ibrar Yousafzai's portfolio.
+                    Explore projects, skills,
+                    experience, technologies,
+                    and ways to work together.
+                  </p>
+
+                </section>
+
+
+                <div className="iy-section-heading">
+                  <span>
+                    Explore
+                  </span>
+
+                  <small>
+                    Choose a topic
+                  </small>
+                </div>
+
+
+                <div className="iy-capabilities">
+
+                  {prompts.map(
+                    (item, index) => (
+                      <button
+                        type="button"
+                        key={index}
+                        className="iy-capability"
+                        onClick={() =>
+                          sendMessage(
+                            item.question
+                          )
+                        }
+                      >
+
+                        <div
+                          className="iy-capability-icon"
+                          style={{
+                            background:
+                              `linear-gradient(
+                                135deg,
+                                ${theme.primary},
+                                ${theme.secondary}
+                              )`,
+                          }}
+                        >
+                          {item.icon}
+                        </div>
+
+
+                        <div className="iy-capability-copy">
+
+                          <div className="iy-capability-title">
+                            {item.title}
+                          </div>
+
+                          <div className="iy-capability-description">
+                            {
+                              item.description
+                            }
+                          </div>
+
+                        </div>
+
+
+                        <span className="iy-capability-arrow">
+                          →
+                        </span>
+
+                      </button>
+                    )
+                  )}
+
+                </div>
+
+
+                <div className="iy-prompt-area">
+
+                  <div className="iy-section-heading">
+                    <span>
+                      Try asking
+                    </span>
+
+                    <small>
+                      Quick questions
+                    </small>
+                  </div>
+
+
+                  <div className="iy-prompts">
+
+                    {suggestedQuestions.map(
+                      (
+                        question,
+                        index
+                      ) => (
+                        <button
+                          type="button"
+                          key={index}
+                          className="iy-prompt"
+                          onClick={() =>
+                            sendMessage(
+                              question
+                            )
+                          }
+                        >
+
+                          <span className="iy-prompt-icon">
+                            {index === 0
+                              ? "?"
+                              : index === 1
+                              ? "AI"
+                              : index === 2
+                              ? "⌘"
+                              : "↗"}
+                          </span>
+
+                          <span className="iy-prompt-text">
+                            {question}
+                          </span>
+
+                          <span className="iy-prompt-arrow">
+                            →
+                          </span>
+
+                        </button>
+                      )
+                    )}
+
+                  </div>
+
+                </div>
+
+
+              </main>
+            )}
+
+
+            {/* CHAT */}
+
+            {tab === "chat" && (
+              <section className="iy-chat">
+
+                <div
+                  className="iy-messages"
+                  ref={scrollRef}
+                >
+
+                  {messages.length === 0 && (
+                    <div className="iy-empty-chat">
+
+                      <div
+                        className="iy-empty-icon"
+                        style={{
+                          background:
+                            `linear-gradient(
+                              135deg,
+                              ${theme.primary},
+                              ${theme.secondary}
+                            )`,
+                        }}
+                      >
+                        IY
+                      </div>
+
+                      <h2>
+                        Ask IY AI
+                      </h2>
+
+                      <p>
+                        Ask anything about
+                        Ibrar's portfolio.
+                      </p>
+
+                    </div>
+                  )}
+
+
+                  {messages.map(
+                    (
+                      message,
+                      index
+                    ) => (
+
+                      <div
+                        key={index}
+                        className={`iy-message-row ${message.role}`}
+                      >
+
+                        <div
+                          className={`iy-message ${message.role}`}
+                        >
+                          {message.role ===
+                          "bot"
+                            ? renderBotText(
+                                message.text
+                              )
+                            : message.text}
+                        </div>
+
+
+                        {message.time && (
+                          <div className="iy-time">
+                            {message.time}
+                          </div>
+                        )}
+
+
+                        {message.role ===
+                          "bot" &&
+                          message.text && (
+                            <div className="iy-message-tools">
+
+                              <button
+                                type="button"
+                                className={`iy-feedback-button ${
+                                  message.feedback ===
+                                  "up"
+                                    ? "selected"
+                                    : ""
+                                }`}
+                                onClick={() =>
+                                  sendFeedback(
+                                    index,
+                                    "up"
+                                  )
+                                }
+                                aria-label="Helpful"
+                              >
+                                👍
+                              </button>
+
+                              <button
+                                type="button"
+                                className={`iy-feedback-button ${
+                                  message.feedback ===
+                                  "down"
+                                    ? "selected"
+                                    : ""
+                                }`}
+                                onClick={() =>
+                                  sendFeedback(
+                                    index,
+                                    "down"
+                                  )
+                                }
+                                aria-label="Not helpful"
+                              >
+                                👎
+                              </button>
+
+                            </div>
+                          )}
+
+
+                        {/* CONTACT OPTIONS */}
+
+                        {message.showContact && (
+                          <div className="iy-contact">
+
+                            <div className="iy-contact-label">
+                              Connect with Ibrar
+                            </div>
+
+                            <div className="iy-contact-grid">
+
+                              <a
+                                href={
+                                  LINKEDIN_URL
+                                }
+                                target="_blank"
+                                rel="noreferrer"
+                                className="iy-contact-link"
+                              >
+                                <span className="iy-contact-icon">
+                                  in
+                                </span>
+
+                                <span>
+                                  LinkedIn
+                                </span>
+
+                                <b>
+                                  ↗
+                                </b>
+                              </a>
+
+
+                              <a
+                                href={
+                                  GITHUB_URL
+                                }
+                                target="_blank"
+                                rel="noreferrer"
+                                className="iy-contact-link"
+                              >
+                                <span className="iy-contact-icon">
+                                  ◇
+                                </span>
+
+                                <span>
+                                  GitHub
+                                </span>
+
+                                <b>
+                                  ↗
+                                </b>
+                              </a>
+
+
+                              <a
+                                href={`mailto:${CONTACT_EMAIL}`}
+                                className="iy-contact-link"
+                              >
+                                <span className="iy-contact-icon">
+                                  @
+                                </span>
+
+                                <span>
+                                  Email
+                                </span>
+
+                                <b>
+                                  ↗
+                                </b>
+                              </a>
+
+
+                              <a
+                                href={
+                                  CONTACT_FORM_URL
+                                }
+                                className="iy-contact-link"
+                              >
+                                <span className="iy-contact-icon">
+                                  ✎
+                                </span>
+
+                                <span>
+                                  Contact Form
+                                </span>
+
+                                <b>
+                                  →
+                                </b>
+                              </a>
+
+                            </div>
+
+                          </div>
+                        )}
+
+                      </div>
+                    )
+                  )}
+
+
+                  {typing && (
+                    <div className="iy-typing">
+
+                      <div className="iy-typing-avatar">
+                        IY
+                      </div>
+
+                      <div className="iy-typing-bubble">
+
+                        <div className="iy-dots">
+                          <span />
+                          <span />
+                          <span />
+                        </div>
+
+                        <span>
+                          IY AI is thinking
+                        </span>
+
+                      </div>
+
+                    </div>
+                  )}
+
+                </div>
+
+
+                {/* QUICK SUGGESTIONS */}
+
+                {!typing &&
+                  messages.length >
+                    0 && (
+                    <div className="iy-suggestions">
+
+                      {suggestedQuestions.map(
+                        (
+                          question,
+                          index
+                        ) => (
+                          <button
+                            type="button"
+                            key={index}
+                            className="iy-suggestion"
+                            onClick={() =>
+                              sendMessage(
+                                question
+                              )
+                            }
+                          >
+                            {question}
+                          </button>
+                        )
+                      )}
+
+                    </div>
+                  )}
+
+
+                {/* INPUT */}
+
+                <form
+                  className="iy-input-area"
+                  onSubmit={
+                    handleSubmit
+                  }
+                >
+
+                  <div className="iy-input-wrap">
+
+                    <input
+                      ref={inputRef}
+                      className="iy-input"
+                      type="text"
+                      value={input}
+                      onChange={(event) =>
+                        setInput(
+                          event.target.value
+                        )
+                      }
+                      placeholder="Ask IY AI anything..."
+                      disabled={typing}
+                      autoComplete="off"
+                      aria-label="Ask IY AI"
+                    />
+
+                    <button
+                      type="submit"
+                      className="iy-send"
+                      disabled={
+                        typing ||
+                        !input.trim()
+                      }
+                      style={{
+                        background:
+                          `linear-gradient(
+                            135deg,
+                            ${theme.primary},
+                            ${theme.secondary}
+                          )`,
+                      }}
+                      aria-label="Send message"
+                    >
+                      →
+                    </button>
+
+                  </div>
+
+                </form>
+
+
+                <div className="iy-chat-bottom">
+
+                  <button
+                    type="button"
+                    className="iy-clear"
+                    onClick={
+                      clearChat
+                    }
+                    disabled={typing}
+                  >
+                    ↺ Clear conversation
+                  </button>
+
+                  <span>
+                    IY AI · Portfolio Assistant
+                  </span>
+
+                </div>
+
+              </section>
+            )}
+
+
+            {/* FOOTER */}
+
+            <footer className="iy-footer">
+
+              <span>
+                Created by
+              </span>
+
+              <strong>
+                Ibrar Yousafzai
+              </strong>
+
+              <span
+                className="iy-footer-logo"
+                style={{
+                  background:
+                    `linear-gradient(
+                      135deg,
+                      ${theme.primary},
+                      ${theme.secondary}
+                    )`,
+                }}
+              >
+                IY
+              </span>
+
+            </footer>
+
+          </div>
+        )}
+      </div>
+
+
+      {/* =====================================================
+          STYLES
+      ===================================================== */}
 
       <style jsx global>{`
 
-        /* ==================================================
-           BASE
-          /* =======================================================
-             BODY LOCK WHILE CHAT IS OPEN
-             ======================================================= */
+        * {
+          box-sizing:
+            border-box;
+        }
 
+
+        .iy-root {
           font-family:
             Inter,
-            const previousOverflow =
-              document.body.style.overflow;
-            system-ui,
-            if (open) {
+            ui-sans-serif,
+            -apple-system,
+            BlinkMacSystemFont,
             "Segoe UI",
-              document.body.style.overflow =
-                "hidden";
-
+            sans-serif;
 
           text-rendering:
             optimizeLegibility;
-
-        }
-
-                previousOverflow;
-        .iy-root *,
-        .iy-root *::before,
-        .iy-root *::after {
-          }, [open]);
-          box-sizing:
-            border-box;
-
         }
 
 
-        /* ==================================================
+        .iy-root button,
+        .iy-root input {
+          font-family:
+            inherit;
+        }
+
+
+        /* =================================================
            LAUNCHER
-           ================================================== */
+           ================================================= */
 
         .iy-launcher {
-
           position:
             fixed;
 
@@ -1027,33 +1703,67 @@ if (isContactQuestion) {
 
           gap:
             10px;
+        }
 
+
+        .iy-launcher-label {
+          padding:
+            9px 13px;
+
+          border:
+            1px solid
+            rgba(0,0,0,.07);
+
+          border-radius:
+            14px;
+
+          background:
+            rgba(255,255,255,.96);
+
+          color:
+            #242932;
+
+          font-size:
+            11px;
+
+          font-weight:
+            700;
+
+          box-shadow:
+            0 8px 25px
+            rgba(0,0,0,.12);
+
+          white-space:
+            nowrap;
         }
 
 
         .iy-launcher-button {
-
-          position:
-            relative;
-
           width:
-            62px;
+            60px;
 
           height:
-            62px;
-
-          border-radius:
-            20px;
+            60px;
 
           border:
             1px solid
-            rgba(255,255,255,.3);
+            rgba(255,255,255,.4);
 
-          cursor:
-            pointer;
+          border-radius:
+            18px;
+
+          background:
+            linear-gradient(
+              135deg,
+              var(--iy-primary),
+              var(--iy-secondary)
+            );
 
           color:
             white;
+
+          cursor:
+            pointer;
 
           display:
             flex;
@@ -1067,120 +1777,66 @@ if (isContactQuestion) {
           justify-content:
             center;
 
-          gap:
-            1px;
-
           box-shadow:
-            0 14px 35px
-            rgba(0,0,0,.25);
+            0 15px 40px
+            rgba(0,0,0,.22);
 
           transition:
             transform .2s ease,
             box-shadow .2s ease;
-
         }
 
 
         .iy-launcher-button:hover {
-
           transform:
             translateY(-3px);
 
           box-shadow:
-            0 18px 42px
-            rgba(0,0,0,.3);
-
+            0 20px 45px
+            rgba(0,0,0,.28);
         }
 
 
-        .iy-launcher-symbol {
-
+        .iy-launcher-logo {
           font-size:
             17px;
 
+          font-weight:
+            900;
+
           line-height:
             1;
-
-          font-weight:
-            800;
-
         }
 
 
         .iy-launcher-text {
+          margin-top:
+            3px;
 
           font-size:
-            9px;
+            8px;
 
           font-weight:
-            700;
-
-          letter-spacing:
-            .2px;
+            800;
 
           opacity:
             .9;
 
+          letter-spacing:
+            .4px;
         }
 
 
-        .iy-launcher-label {
-
-          background:
-            rgba(255,255,255,.97);
-
-          color:
-            #20242a;
-
-          border:
-            1px solid
-            rgba(0,0,0,.06);
-
-          padding:
-            10px 14px;
-
-          border-radius:
-            16px;
-
-          box-shadow:
-            0 8px 25px
-            rgba(0,0,0,.12);
-
-          font-size:
-            12px;
-
-          font-weight:
-            650;
-
-          white-space:
-            nowrap;
-
-        }
-
-
-        /* ==================================================
-           CHAT WINDOW
-           ================================================== */
+        /* =================================================
+           WINDOW
+           ================================================= */
 
         .iy-window {
-
           position:
             fixed;
 
           z-index:
-            99989;
-
-          width:
-            430px;
-
-          height:
-            680px;
-
-          max-width:
-            calc(100vw - 40px);
-
-          max-height:
-            calc(100vh - 70px);
+            99999;
 
           left:
             50%;
@@ -1191,12 +1847,24 @@ if (isContactQuestion) {
           transform:
             translate(-50%, -50%);
 
+          width:
+            min(430px, calc(100vw - 40px));
+
+          height:
+            min(720px, calc(100vh - 70px));
+
+          max-width:
+            calc(100vw - 40px);
+
+          max-height:
+            calc(100vh - 70px);
+
           background:
-            #ffffff;
+            #fff;
 
           border:
             1px solid
-            rgba(15,23,42,.1);
+            rgba(15,23,42,.10);
 
           border-radius:
             24px;
@@ -1212,55 +1880,52 @@ if (isContactQuestion) {
 
           box-shadow:
             0 35px 100px
-            rgba(0,0,0,.27),
-
-            0 8px 35px
-            rgba(0,0,0,.12);
+            rgba(0,0,0,.25),
+            0 10px 35px
+            rgba(0,0,0,.10);
 
           animation:
-            iy-window-in
-            .25s ease-out;
-
-          overscroll-behavior:
-            contain;
-
+            iy-window-in .25s
+            ease-out;
         }
 
 
         @keyframes iy-window-in {
-
           from {
-
             opacity:
               0;
 
             transform:
-              translate(-50%, -47%)
-              scale(.96);
-
+              translate(
+                -50%,
+                -47%
+              )
+              scale(.97);
           }
 
           to {
-
             opacity:
               1;
 
             transform:
-              translate(-50%, -50%)
+              translate(
+                -50%,
+                -50%
+              )
               scale(1);
-
           }
-
         }
 
 
-        /* ==================================================
+        /* =================================================
            FULLSCREEN
-           ================================================== */
+           ================================================= */
 
         .iy-window.fullscreen {
+          left:
+            0;
 
-          inset:
+          top:
             0;
 
           width:
@@ -1275,30 +1940,22 @@ if (isContactQuestion) {
           max-height:
             100vh;
 
-          left:
-            0;
-
-          top:
-            0;
-
           transform:
             none;
-
-          border-radius:
-            0;
 
           border:
             none;
 
+          border-radius:
+            0;
         }
 
 
-        /* ==================================================
+        /* =================================================
            HEADER
-           ================================================== */
+           ================================================= */
 
         .iy-header {
-
           position:
             relative;
 
@@ -1313,41 +1970,34 @@ if (isContactQuestion) {
 
           overflow:
             hidden;
-
         }
 
 
-        .iy-header::before {
-
-          content:
-            "";
-
+        .iy-header-glow {
           position:
             absolute;
 
           width:
-            160px;
+            180px;
 
           height:
-            160px;
+            180px;
 
           right:
-            -70px;
+            -80px;
 
           top:
-            -100px;
+            -110px;
 
           border-radius:
             50%;
 
           background:
-            rgba(255,255,255,.08);
-
+            rgba(255,255,255,.10);
         }
 
 
         .iy-header-content {
-
           position:
             relative;
 
@@ -1365,47 +2015,33 @@ if (isContactQuestion) {
 
           gap:
             12px;
-
         }
 
 
         .iy-brand {
-
           display:
             flex;
 
           align-items:
             center;
 
-          gap:
-            10px;
-
           min-width:
             0;
 
+          gap:
+            10px;
         }
 
 
-        .iy-logo {
-
+        .iy-brand-logo {
           width:
             42px;
 
           height:
             42px;
 
-          flex:
-            0 0 42px;
-
-          border-radius:
-            13px;
-
-          background:
-            rgba(255,255,255,.14);
-
-          border:
-            1px solid
-            rgba(255,255,255,.25);
+          flex-shrink:
+            0;
 
           display:
             flex;
@@ -1416,78 +2052,58 @@ if (isContactQuestion) {
           justify-content:
             center;
 
+          border:
+            1px solid
+            rgba(255,255,255,.35);
+
+          border-radius:
+            13px;
+
+          background:
+            rgba(255,255,255,.16);
+
+          backdrop-filter:
+            blur(8px);
+
           font-size:
             13px;
 
           font-weight:
-            850;
-
-          letter-spacing:
-            -.5px;
-
-          box-shadow:
-            inset 0 1px
-            rgba(255,255,255,.12);
-
-        }
-
-
-        .iy-brand-info {
-
-          min-width:
-            0;
-
-        }
-
-
-        .iy-brand-title {
-
-          margin:
-            0;
-
-          font-size:
-            16px;
-
-          line-height:
-            1.15;
-
-          font-weight:
-            800;
+            900;
 
           letter-spacing:
             -.3px;
+        }
 
+
+        .iy-brand-name {
+          font-size:
+            15px;
+
+          line-height:
+            1.1;
+
+          font-weight:
+            850;
         }
 
 
         .iy-brand-subtitle {
-
-          margin:
-            4px 0 0;
+          margin-top:
+            2px;
 
           font-size:
-            10px;
-
-          line-height:
-            1.3;
+            9px;
 
           opacity:
-            .72;
+            .78;
 
-          white-space:
-            nowrap;
-
-          overflow:
-            hidden;
-
-          text-overflow:
-            ellipsis;
-
+          line-height:
+            1.2;
         }
 
 
-        .iy-online {
-
+        .iy-status {
           display:
             flex;
 
@@ -1498,19 +2114,20 @@ if (isContactQuestion) {
             5px;
 
           margin-top:
-            4px;
+            5px;
 
           font-size:
-            9px;
+            8px;
+
+          font-weight:
+            700;
 
           opacity:
-            .78;
-
+            .88;
         }
 
 
-        .iy-online-dot {
-
+        .iy-status-dot {
           width:
             6px;
 
@@ -1521,21 +2138,15 @@ if (isContactQuestion) {
             50%;
 
           background:
-            #4ade80;
+            #9ff5c5;
 
           box-shadow:
-            0 0 0 3px
-            rgba(74,222,128,.12);
-
+            0 0 8px
+            rgba(159,245,197,.7);
         }
 
 
-        /* ==================================================
-           HEADER ACTIONS
-           ================================================== */
-
         .iy-actions {
-
           display:
             flex;
 
@@ -1543,34 +2154,32 @@ if (isContactQuestion) {
             center;
 
           gap:
-            5px;
-
-          flex-shrink:
-            0;
-
+            4px;
         }
 
 
         .iy-action {
-
           width:
-            34px;
+            30px;
 
           height:
-            34px;
+            30px;
 
           border:
             1px solid
-            rgba(255,255,255,.12);
+            rgba(255,255,255,.18);
 
           border-radius:
-            10px;
+            9px;
+
+          background:
+            rgba(255,255,255,.10);
 
           color:
             white;
 
-          background:
-            rgba(255,255,255,.09);
+          cursor:
+            pointer;
 
           display:
             flex;
@@ -1580,462 +2189,78 @@ if (isContactQuestion) {
 
           justify-content:
             center;
-
-          cursor:
-            pointer;
 
           font-size:
             13px;
 
           transition:
-            background .15s ease,
-            transform .15s ease;
-
+            background .15s ease;
         }
 
 
         .iy-action:hover {
-
           background:
-            rgba(255,255,255,.18);
-
-          transform:
-            translateY(-1px);
-
+            rgba(255,255,255,.20);
         }
 
 
-        /* ==================================================
-           NAVIGATION
-           ================================================== */
+        /* =================================================
+           NAV
+           ================================================= */
 
         .iy-nav {
-
-          display:
-            flex;
+          height:
+            43px;
 
           flex-shrink:
             0;
 
-          background:
-            #ffffff;
+          display:
+            flex;
+
+          align-items:
+            stretch;
+
+          padding:
+            0 12px;
 
           border-bottom:
             1px solid #edf0f2;
 
+          background:
+            white;
         }
 
 
         .iy-nav-button {
+          position:
+            relative;
 
           flex:
             1;
 
-          height:
-            45px;
-
           border:
             none;
-
-          background:
-            transparent;
-
-          color:
-            #8a919a;
-
-          font-size:
-            12px;
-
-          font-weight:
-            700;
-
-          cursor:
-            pointer;
 
           border-bottom:
             2px solid
             transparent;
 
-        }
-
-
-        /* ==================================================
-           HOME
-           ================================================== */
-
-        .iy-home {
-
-          flex:
-            1;
-
-          min-height:
-            0;
-
-          overflow-y:
-            auto;
-
-          padding:
-            19px;
-
           background:
-            linear-gradient(
-              180deg,
-              #ffffff 0%,
-              #fbfcfd 100%
-            );
-
-        }
-
-
-        .iy-welcome {
-
-          text-align:
-            center;
-
-          padding:
-            5px 5px 17px;
-
-        }
-
-
-        .iy-welcome-icon {
-
-          width:
-            58px;
-
-          height:
-            58px;
-
-          margin:
-            0 auto 12px;
-
-          border-radius:
-            18px;
-
-          color:
-            white;
-
-          display:
-            flex;
-
-          align-items:
-            center;
-
-          justify-content:
-            center;
-
-          font-size:
-            18px;
-
-          font-weight:
-            850;
-
-          box-shadow:
-            0 10px 25px
-            rgba(0,0,0,.14);
-
-        }
-
-
-        .iy-welcome-title {
-
-          margin:
-            0;
-
-          color:
-            #111827;
-
-          font-size:
-            21px;
-
-          font-weight:
-            850;
-
-          letter-spacing:
-            -.5px;
-
-        }
-
-
-        .iy-welcome-title span {
-
-          background:
-            linear-gradient(
-              90deg,
-              var(--iy-primary),
-              var(--iy-secondary)
-            );
-
-          -webkit-background-clip:
-            text;
-
-          background-clip:
-            text;
-
-          color:
             transparent;
 
-        }
-
-
-        .iy-welcome-text {
-
-          max-width:
-            340px;
-
-          margin:
-            8px auto 0;
-
           color:
-            #737b86;
-
-          font-size:
-            12px;
-
-          line-height:
-            1.55;
-
-        }
-
-
-        /* ==================================================
-           CAPABILITY CARDS
-           ================================================== */
-
-        .iy-section-label {
-
-          margin:
-            2px 0 9px;
-
-          color:
-            #9aa1aa;
-
-          font-size:
-            9px;
-
-          font-weight:
-            800;
-
-          letter-spacing:
-            1.3px;
-
-          text-transform:
-            uppercase;
-
-        }
-
-
-        .iy-capabilities {
-
-          display:
-            grid;
-
-          grid-template-columns:
-            1fr 1fr;
-
-          gap:
-            8px;
-
-        }
-
-
-        .iy-capability {
-
-          min-height:
-            84px;
-
-          padding:
-            12px;
-
-          border:
-            1px solid #e8ebee;
-
-          border-radius:
-            14px;
-
-          background:
-            #ffffff;
+            #9299a2;
 
           cursor:
             pointer;
 
-          text-align:
-            left;
-
-          transition:
-            transform .15s ease,
-            border-color .15s ease,
-            box-shadow .15s ease;
-
-        }
-
-
-        .iy-capability:hover {
-
-          transform:
-            translateY(-2px);
-
-          border-color:
-            #d6dde1;
-
-          box-shadow:
-            0 8px 22px
-            rgba(0,0,0,.06);
-
-        }
-
-
-        .iy-capability-icon {
-
-          width:
-            31px;
-
-          height:
-            31px;
-
-          border-radius:
-            9px;
-
-          display:
-            flex;
-
-          align-items:
-            center;
-
-          justify-content:
-            center;
-
-          color:
-            white;
-
           font-size:
-            12px;
-
-          font-weight:
-            800;
-
-          margin-bottom:
-            8px;
-
-        }
-
-
-        .iy-capability-title {
-
-          color:
-            #242932;
-
-          font-size:
-            11.5px;
+            10px;
 
           font-weight:
             750;
 
-        }
-
-
-        .iy-capability-description {
-
-          margin-top:
-            3px;
-
-          color:
-            #8a919a;
-
-          font-size:
-            9.5px;
-
-          line-height:
-            1.35;
-
-        }
-
-
-        /* ==================================================
-           PROMPT AREA
-           ================================================== */
-
-        .iy-prompt-area {
-
-          margin-top:
-            18px;
-
-        }
-
-
-        .iy-prompt {
-
-          width:
-            100%;
-
-          min-height:
-            45px;
-
-          display:
-            flex;
-
-          align-items:
-            center;
-
-          gap:
-            10px;
-
-          margin-bottom:
-            7px;
-
-          padding:
-            9px 11px;
-
-          background:
-            #f8fafb;
-
-          border:
-            1px solid #e8ecef;
-
-          border-radius:
-            12px;
-
-          cursor:
-            pointer;
-
-          text-align:
-            left;
-
-          transition:
-            background .15s ease,
-            transform .15s ease;
-
-        }
-
-
-        .iy-prompt:hover {
-
-          background:
-            white;
-
-          transform:
-            translateX(2px);
-
-        }
-
-
-        .iy-prompt-icon {
-
-          width:
-            27px;
-
-          height:
-            27px;
-
-          border-radius:
-            8px;
-
-          background:
-            white;
-
-          border:
-            1px solid #e4e8eb;
-
           display:
             flex;
 
@@ -2045,82 +2270,29 @@ if (isContactQuestion) {
           justify-content:
             center;
 
+          gap:
+            5px;
+        }
+
+
+        .iy-nav-button.active {
           color:
             var(--iy-primary);
 
-          font-size:
-            11px;
-
-          font-weight:
-            800;
-
-          flex-shrink:
-            0;
-
+          border-bottom-color:
+            var(--iy-accent);
         }
 
 
-        .iy-prompt-text {
+        .iy-count {
+          min-width:
+            16px;
 
-          flex:
-            1;
-
-          color:
-            #454b54;
-
-          font-size:
-            11.5px;
-
-          line-height:
-            1.35;
-
-        }
-
-
-        .iy-prompt-arrow {
-
-          color:
-            #a3a9b0;
-
-          font-size:
-            14px;
-
-        }
-
-
-        /* ==================================================
-           HOME FOOTER
-           ================================================== */
-
-        .iy-created {
-
-          text-align:
-            center;
+          height:
+            16px;
 
           padding:
-            15px 0 4px;
-
-          color:
-            #9aa0a8;
-
-          font-size:
-            9.5px;
-
-        }
-
-
-        .iy-created strong {
-
-          color:
-            #59616b;
-
-          font-weight:
-            750;
-
-        }
-
-
-        .iy-created-logo {
+            0 4px;
 
           display:
             inline-flex;
@@ -2131,6 +2303,534 @@ if (isContactQuestion) {
           justify-content:
             center;
 
+          border-radius:
+            8px;
+
+          background:
+            var(--iy-soft);
+
+          color:
+            var(--iy-primary);
+
+          font-size:
+            8px;
+        }
+
+
+        /* =================================================
+           HOME
+           ================================================= */
+
+        .iy-home {
+          flex:
+            1;
+
+          min-height:
+            0;
+
+          overflow-y:
+            auto;
+
+          padding:
+            18px 16px 8px;
+        }
+
+
+        .iy-welcome {
+          text-align:
+            center;
+
+          padding:
+            3px 8px 16px;
+        }
+
+
+        .iy-welcome-icon {
+          position:
+            relative;
+
+          width:
+            58px;
+
+          height:
+            58px;
+
+          margin:
+            0 auto 11px;
+
+          border-radius:
+            18px;
+
+          color:
+            white;
+
+          display:
+            flex;
+
+          align-items:
+            center;
+
+          justify-content:
+            center;
+
+          font-size:
+            16px;
+
+          font-weight:
+            900;
+
+          box-shadow:
+            0 12px 28px
+            rgba(15,118,110,.20);
+        }
+
+
+        .iy-welcome-icon i {
+          position:
+            absolute;
+
+          width:
+            7px;
+
+          height:
+            7px;
+
+          right:
+            9px;
+
+          top:
+            9px;
+
+          border:
+            2px solid white;
+
+          border-radius:
+            50%;
+
+          opacity:
+            .8;
+        }
+
+
+        .iy-eyebrow {
+          color:
+            var(--iy-primary);
+
+          font-size:
+            8px;
+
+          font-weight:
+            850;
+
+          letter-spacing:
+            1.1px;
+        }
+
+
+        .iy-welcome-title {
+          margin:
+            5px 0 5px;
+
+          color:
+            #1f252d;
+
+          font-size:
+            21px;
+
+          line-height:
+            1.2;
+
+          letter-spacing:
+            -.5px;
+        }
+
+
+        .iy-welcome-title span {
+          color:
+            var(--iy-primary);
+        }
+
+
+        .iy-welcome-text {
+          max-width:
+            350px;
+
+          margin:
+            0 auto;
+
+          color:
+            #7d858e;
+
+          font-size:
+            10.5px;
+
+          line-height:
+            1.55;
+        }
+
+
+        .iy-section-heading {
+          display:
+            flex;
+
+          align-items:
+            baseline;
+
+          justify-content:
+            space-between;
+
+          margin:
+            3px 2px 8px;
+        }
+
+
+        .iy-section-heading span {
+          color:
+            #343b44;
+
+          font-size:
+            9px;
+
+          font-weight:
+            850;
+
+          text-transform:
+            uppercase;
+
+          letter-spacing:
+            .7px;
+        }
+
+
+        .iy-section-heading small {
+          color:
+            #a3a9b0;
+
+          font-size:
+            8px;
+
+          font-weight:
+            600;
+        }
+
+
+        .iy-capabilities {
+          display:
+            grid;
+
+          grid-template-columns:
+            1fr 1fr;
+
+          gap:
+            8px;
+        }
+
+
+        .iy-capability {
+          position:
+            relative;
+
+          min-height:
+            88px;
+
+          padding:
+            11px;
+
+          border:
+            1px solid #e8ecef;
+
+          border-radius:
+            15px;
+
+          background:
+            white;
+
+          cursor:
+            pointer;
+
+          text-align:
+            left;
+
+          box-shadow:
+            0 3px 12px
+            rgba(0,0,0,.035);
+
+          transition:
+            transform .16s ease,
+            box-shadow .16s ease,
+            border-color .16s ease;
+        }
+
+
+        .iy-capability:hover {
+          transform:
+            translateY(-2px);
+
+          border-color:
+            var(--iy-border);
+
+          box-shadow:
+            0 8px 22px
+            rgba(0,0,0,.07);
+        }
+
+
+        .iy-capability-icon {
+          width:
+            29px;
+
+          height:
+            29px;
+
+          margin-bottom:
+            8px;
+
+          border-radius:
+            9px;
+
+          color:
+            white;
+
+          display:
+            flex;
+
+          align-items:
+            center;
+
+          justify-content:
+            center;
+
+          font-size:
+            11px;
+
+          font-weight:
+            900;
+        }
+
+
+        .iy-capability-copy {
+          padding-right:
+            12px;
+        }
+
+
+        .iy-capability-title {
+          color:
+            #252b33;
+
+          font-size:
+            10.5px;
+
+          font-weight:
+            800;
+        }
+
+
+        .iy-capability-description {
+          margin-top:
+            3px;
+
+          color:
+            #8c939b;
+
+          font-size:
+            8.5px;
+
+          line-height:
+            1.35;
+        }
+
+
+        .iy-capability-arrow {
+          position:
+            absolute;
+
+          right:
+            10px;
+
+          bottom:
+            9px;
+
+          color:
+            #b1b7bd;
+
+          font-size:
+            12px;
+        }
+
+
+        /* =================================================
+           PROMPTS
+           ================================================= */
+
+        .iy-prompt-area {
+          margin-top:
+            17px;
+        }
+
+
+        .iy-prompts {
+          display:
+            flex;
+
+          flex-direction:
+            column;
+
+          gap:
+            6px;
+        }
+
+
+        .iy-prompt {
+          min-height:
+            38px;
+
+          width:
+            100%;
+
+          padding:
+            6px 9px;
+
+          display:
+            flex;
+
+          align-items:
+            center;
+
+          gap:
+            8px;
+
+          border:
+            1px solid #e9edef;
+
+          border-radius:
+            11px;
+
+          background:
+            #fafbfb;
+
+          color:
+            #4a5159;
+
+          cursor:
+            pointer;
+
+          text-align:
+            left;
+
+          transition:
+            background .15s ease,
+            transform .15s ease,
+            border-color .15s ease;
+        }
+
+
+        .iy-prompt:hover {
+          background:
+            white;
+
+          transform:
+            translateX(2px);
+
+          border-color:
+            var(--iy-border);
+        }
+
+
+        .iy-prompt-icon {
+          width:
+            25px;
+
+          height:
+            25px;
+
+          flex-shrink:
+            0;
+
+          display:
+            flex;
+
+          align-items:
+            center;
+
+          justify-content:
+            center;
+
+          border:
+            1px solid #e5e9eb;
+
+          border-radius:
+            8px;
+
+          background:
+            white;
+
+          color:
+            var(--iy-primary);
+
+          font-size:
+            8px;
+
+          font-weight:
+            850;
+        }
+
+
+        .iy-prompt-text {
+          flex:
+            1;
+
+          font-size:
+            9.5px;
+
+          line-height:
+            1.3;
+        }
+
+
+        .iy-prompt-arrow {
+          color:
+            #a7aeb5;
+
+          font-size:
+            13px;
+        }
+
+
+        .iy-created {
+          display:
+            flex;
+
+          align-items:
+            center;
+
+          justify-content:
+            center;
+
+          gap:
+            4px;
+
+          margin:
+            17px 0 4px;
+
+          color:
+            #a1a7ae;
+
+          font-size:
+            8px;
+        }
+
+
+        .iy-created strong {
+          color:
+            #646c75;
+
+          font-weight:
+            800;
+        }
+
+
+        .iy-created-logo {
           width:
             18px;
 
@@ -2138,10 +2838,19 @@ if (isContactQuestion) {
             18px;
 
           margin-left:
-            4px;
+            2px;
 
           border-radius:
             6px;
+
+          display:
+            inline-flex;
+
+          align-items:
+            center;
+
+          justify-content:
+            center;
 
           color:
             white;
@@ -2150,17 +2859,15 @@ if (isContactQuestion) {
             7px;
 
           font-weight:
-            850;
-
+            900;
         }
 
 
-        /* ==================================================
+        /* =================================================
            CHAT
-           ================================================== */
+           ================================================= */
 
         .iy-chat {
-
           flex:
             1;
 
@@ -2176,11 +2883,12 @@ if (isContactQuestion) {
           overflow:
             hidden;
 
+          background:
+            #fff;
         }
 
 
         .iy-messages {
-
           flex:
             1;
 
@@ -2205,47 +2913,51 @@ if (isContactQuestion) {
           -webkit-overflow-scrolling:
             touch;
 
-          overscroll-behavior-y:
+          overscroll-behavior:
             contain;
+        }
 
-          touch-action:
-            pan-y;
 
+        .iy-messages::-webkit-scrollbar {
+          width:
+            4px;
+        }
+
+
+        .iy-messages::-webkit-scrollbar-thumb {
+          background:
+            #dce1e4;
+
+          border-radius:
+            10px;
         }
 
 
         .iy-message-row {
+          width:
+            100%;
 
           display:
             flex;
 
           flex-direction:
             column;
-
-          width:
-            100%;
-
         }
 
 
         .iy-message-row.user {
-
           align-items:
             flex-end;
-
         }
 
 
         .iy-message-row.bot {
-
           align-items:
             flex-start;
-
         }
 
 
         .iy-message {
-
           max-width:
             88%;
 
@@ -2256,7 +2968,7 @@ if (isContactQuestion) {
             15px;
 
           font-size:
-            12.5px;
+            11.5px;
 
           line-height:
             1.55;
@@ -2266,439 +2978,272 @@ if (isContactQuestion) {
 
           word-break:
             break-word;
-
         }
 
 
         .iy-message.user {
-
           color:
             white;
+
+          background:
+            var(--iy-dark);
 
           border-bottom-right-radius:
             4px;
 
+          box-shadow:
+            0 4px 12px
+            rgba(8,17,31,.10);
         }
 
 
         .iy-message.bot {
-
           color:
-            #252a31;
+            #2b3037;
+
+          background:
+            var(--iy-bot);
+
+          border:
+            1px solid
+            rgba(219,228,231,.7);
 
           border-bottom-left-radius:
             4px;
-
         }
 
 
         .iy-message strong {
-
           font-weight:
-            800;
-
-        }
-
-
-        .iy-time {
-
-          padding:
-            3px 4px 0;
+            850;
 
           color:
-            #a2a7ae;
-
-          font-size:
-            9px;
-
+            #20262d;
         }
 
 
-        /* ==================================================
-           FEEDBACK
-           ================================================== */
-
-        .iy-feedback {
-
+        .iy-text-line {
           display:
-            flex;
-
-          gap:
-            2px;
-
-          margin-top:
-            2px;
-
+            inline;
         }
 
 
-        .iy-feedback-button {
-
-          border:
-            none;
-
-          background:
-            transparent;
-
-          cursor:
-            pointer;
-
-          font-size:
-            12px;
-
-          opacity:
-            .5;
-
-          padding:
-            4px;
-
-        }
-
-
-        /* ==================================================
-           CONTACT BUTTONS
-           ================================================== */
-
-        .iy-contact {
-
-          display:
-            flex;
-
-          flex-wrap:
-            wrap;
-
-          gap:
-            5px;
-
-          margin-top:
-            6px;
-
-        }
-
-
-        .iy-contact-link {
-
+        .iy-bullet-line {
           display:
             inline-flex;
 
           align-items:
-            center;
+            flex-start;
 
           gap:
-            5px;
-
-          min-height:
-            31px;
-
-          padding:
-            6px 9px;
-
-          border:
-            1px solid #e1e5e8;
-
-          background:
-            white;
-
-          border-radius:
-            9px;
-
-          text-decoration:
-            none;
-
-          color:
-            #3d444d;
-
-          font-size:
-            10px;
-
-          font-weight:
-            650;
-
+            6px;
         }
 
 
-        /* ==================================================
-           TYPING
-           ================================================== */
+        .iy-bullet {
+          color:
+            var(--iy-primary);
 
-        .iy-typing {
+          font-weight:
+            900;
+        }
+
+
+        .iy-time {
+          margin-top:
+            2px;
+
+          padding:
+            0 4px;
+
+          color:
+            #a4aab1;
+
+          font-size:
+            8px;
+        }
+
+
+        /* =================================================
+           FEEDBACK
+           ================================================= */
+
+        .iy-message-tools {
+          display:
+            flex;
+
+          gap:
+            1px;
+
+          margin-top:
+            1px;
+        }
+
+
+        .iy-feedback-button {
+          width:
+            25px;
+
+          height:
+            23px;
+
+          border:
+            none;
+
+          border-radius:
+            7px;
+
+          background:
+            transparent;
+
+          color:
+            #969da5;
+
+          cursor:
+            pointer;
+
+          font-size:
+            11px;
+
+          opacity:
+            .55;
+        }
+
+
+        .iy-feedback-button:hover,
+        .iy-feedback-button.selected {
+          background:
+            #f2f5f6;
+
+          opacity:
+            1;
+        }
+
+
+        /* =================================================
+           CONTACT
+           ================================================= */
+
+        .iy-contact {
+          width:
+            min(100%, 355px);
+
+          margin-top:
+            7px;
+
+          padding:
+            9px;
+
+          border:
+            1px solid #e7ecee;
+
+          border-radius:
+            13px;
+
+          background:
+            #fbfcfc;
+        }
+
+
+        .iy-contact-label {
+          margin-bottom:
+            7px;
+
+          color:
+            #646c75;
+
+          font-size:
+            8.5px;
+
+          font-weight:
+            800;
+
+          text-transform:
+            uppercase;
+
+          letter-spacing:
+            .5px;
+        }
+
+
+        .iy-contact-grid {
+          display:
+            grid;
+
+          grid-template-columns:
+            1fr 1fr;
+
+          gap:
+            5px;
+        }
+
+
+        .iy-contact-link {
+          min-height:
+            34px;
+
+          padding:
+            5px 7px;
 
           display:
             flex;
 
           align-items:
             center;
-
-          gap:
-            7px;
-
-          color:
-            #8e959e;
-
-          font-size:
-            10.5px;
-
-          padding:
-            3px 5px;
-
-        }
-
-
-        .iy-dots {
-
-          display:
-            flex;
-
-          gap:
-            3px;
-
-        }
-
-
-        .iy-dot {
-
-          width:
-            5px;
-
-          height:
-            5px;
-
-          border-radius:
-            50%;
-
-          background:
-            #9299a2;
-
-          animation:
-            iy-dot
-            1.1s
-            infinite
-            ease-in-out;
-
-        }
-
-
-        .iy-dot:nth-child(2) {
-
-          animation-delay:
-            .15s;
-
-        }
-
-
-        .iy-dot:nth-child(3) {
-
-          animation-delay:
-            .3s;
-
-        }
-
-
-        @keyframes iy-dot {
-
-          0%,
-          60%,
-          100% {
-
-            opacity:
-              .35;
-
-            transform:
-              translateY(0);
-
-          }
-
-          30% {
-
-            opacity:
-              1;
-
-            transform:
-              translateY(-3px);
-
-          }
-
-        }
-
-
-        /* ==================================================
-           CHAT SUGGESTIONS
-           ================================================== */
-
-        .iy-suggestions {
-
-          display:
-            flex;
 
           gap:
             6px;
 
-          overflow-x:
-            auto;
-
-          padding:
-            7px 11px;
-
-          flex-shrink:
-            0;
-
-          scrollbar-width:
-            none;
-
-        }
-
-
-        .iy-suggestions::-webkit-scrollbar {
-
-          display:
-            none;
-
-        }
-
-
-        .iy-suggestion {
-
-          flex-shrink:
-            0;
-
           border:
-            1px solid #e2e6e9;
+            1px solid #e4e9eb;
+
+          border-radius:
+            9px;
 
           background:
             white;
 
-          border-radius:
-            20px;
-
-          padding:
-            7px 10px;
-
-          min-height:
-            31px;
-
-          cursor:
-            pointer;
-
           color:
-            #535a63;
+            #4c545d;
+
+          text-decoration:
+            none;
 
           font-size:
-            10px;
+            8.5px;
 
           font-weight:
-            650;
+            750;
 
+          transition:
+            transform .15s ease,
+            border-color .15s ease,
+            box-shadow .15s ease;
         }
 
 
-        /* ==================================================
-           INPUT
-           ================================================== */
+        .iy-contact-link:hover {
+          transform:
+            translateY(-1px);
 
-        .iy-input-area {
+          border-color:
+            var(--iy-accent);
 
-          display:
-            flex;
+          box-shadow:
+            0 4px 12px
+            rgba(0,0,0,.06);
+        }
 
-          align-items:
-            center;
 
-          gap:
-            7px;
+        .iy-contact-icon {
+          width:
+            23px;
 
-          padding:
-            9px 10px;
-
-          border-top:
-            1px solid #eceff1;
-
-          background:
-            white;
+          height:
+            23px;
 
           flex-shrink:
             0;
-
-        }
-
-
-        .iy-input {
-
-          flex:
-            1;
-
-          min-width:
-            0;
-
-          height:
-            43px;
-
-          border:
-            1px solid #dde2e6;
-
-          border-radius:
-            13px;
-
-          outline:
-            none;
-
-          background:
-            #f8fafb;
-
-          padding:
-            9px 12px;
-
-          font-family:
-            inherit;
-
-          font-size:
-            16px;
-
-          color:
-            #20242a;
-
-        }
-
-
-        .iy-input:focus {
-
-          background:
-            white;
-
-          border-color:
-            var(--iy-primary);
-
-          box-shadow:
-            0 0 0 3px
-            rgba(20,184,166,.08);
-
-        }
-
-
-        .iy-send {
-
-          width:
-            43px;
-
-          height:
-            43px;
-
-          min-width:
-            43px;
-
-          border:
-            none;
-
-          border-radius:
-            13px;
-
-          color:
-            white;
-
-          cursor:
-            pointer;
-
-          font-size:
-            16px;
 
           display:
             flex;
@@ -2709,82 +3254,659 @@ if (isContactQuestion) {
           justify-content:
             center;
 
+          border-radius:
+            7px;
+
+          background:
+            var(--iy-soft);
+
+          color:
+            var(--iy-primary);
+
+          font-size:
+            8px;
+
+          font-weight:
+            900;
         }
 
 
-        .iy-send:disabled {
-
-          opacity:
-            .45;
-
-          cursor:
-            not-allowed;
-
+        .iy-contact-link span:nth-child(2) {
+          flex:
+            1;
         }
 
 
-        /* ==================================================
-           CHAT FOOTER
-           ================================================== */
+        .iy-contact-link b {
+          color:
+            #a3aab1;
 
-        .iy-chat-footer {
+          font-size:
+            10px;
+        }
+
+
+        /* =================================================
+           EMPTY CHAT
+           ================================================= */
+
+        .iy-empty-chat {
+          flex:
+            1;
+
+          min-height:
+            250px;
+
+          display:
+            flex;
+
+          flex-direction:
+            column;
+
+          align-items:
+            center;
+
+          justify-content:
+            center;
 
           text-align:
             center;
+        }
+
+
+        .iy-empty-icon {
+          width:
+            46px;
+
+          height:
+            46px;
+
+          border-radius:
+            14px;
+
+          display:
+            flex;
+
+          align-items:
+            center;
+
+          justify-content:
+            center;
 
           color:
-            #a2a7ad;
+            white;
 
           font-size:
-            8.5px;
+            12px;
+
+          font-weight:
+            900;
+
+          margin-bottom:
+            9px;
+        }
+
+
+        .iy-empty-chat h2 {
+          margin:
+            0 0 4px;
+
+          color:
+            #313840;
+
+          font-size:
+            16px;
+        }
+
+
+        .iy-empty-chat p {
+          margin:
+            0;
+
+          color:
+            #9aa1a8;
+
+          font-size:
+            9.5px;
+        }
+
+
+        /* =================================================
+           TYPING
+           ================================================= */
+
+        .iy-typing {
+          display:
+            flex;
+
+          align-items:
+            center;
+
+          gap:
+            7px;
+
+          align-self:
+            flex-start;
+        }
+
+
+        .iy-typing-avatar {
+          width:
+            25px;
+
+          height:
+            25px;
+
+          border-radius:
+            8px;
+
+          display:
+            flex;
+
+          align-items:
+            center;
+
+          justify-content:
+            center;
+
+          background:
+            linear-gradient(
+              135deg,
+              var(--iy-primary),
+              var(--iy-secondary)
+            );
+
+          color:
+            white;
+
+          font-size:
+            7px;
+
+          font-weight:
+            900;
+        }
+
+
+        .iy-typing-bubble {
+          min-height:
+            31px;
 
           padding:
-            4px 0 7px;
+            7px 10px;
+
+          display:
+            flex;
+
+          align-items:
+            center;
+
+          gap:
+            7px;
+
+          border:
+            1px solid #e7ecee;
+
+          border-radius:
+            11px;
+
+          background:
+            #f5f7f8;
+
+          color:
+            #949ba2;
+
+          font-size:
+            8px;
+        }
+
+
+        .iy-dots {
+          display:
+            flex;
+
+          gap:
+            3px;
+        }
+
+
+        .iy-dots span {
+          width:
+            4px;
+
+          height:
+            4px;
+
+          border-radius:
+            50%;
+
+          background:
+            var(--iy-primary);
+
+          animation:
+            iy-dot 1.1s
+            infinite ease-in-out;
+        }
+
+
+        .iy-dots span:nth-child(2) {
+          animation-delay:
+            .15s;
+        }
+
+
+        .iy-dots span:nth-child(3) {
+          animation-delay:
+            .3s;
+        }
+
+
+        @keyframes iy-dot {
+          0%,
+          60%,
+          100% {
+            transform:
+              translateY(0);
+
+            opacity:
+              .45;
+          }
+
+          30% {
+            transform:
+              translateY(-3px);
+
+            opacity:
+              1;
+          }
+        }
+
+
+        /* =================================================
+           SUGGESTIONS
+           ================================================= */
+
+        .iy-suggestions {
+          display:
+            flex;
+
+          gap:
+            5px;
+
+          overflow-x:
+            auto;
+
+          padding:
+            5px 11px 6px;
+
+          scrollbar-width:
+            none;
+        }
+
+
+        .iy-suggestions::-webkit-scrollbar {
+          display:
+            none;
+        }
+
+
+        .iy-suggestion {
+          flex:
+            0 0 auto;
+
+          border:
+            1px solid #e5eaec;
+
+          border-radius:
+            9px;
+
+          background:
+            #fafbfb;
+
+          color:
+            #6c747c;
+
+          padding:
+            5px 8px;
+
+          cursor:
+            pointer;
+
+          font-size:
+            8px;
+
+          white-space:
+            nowrap;
+        }
+
+
+        .iy-suggestion:hover {
+          border-color:
+            var(--iy-border);
+
+          color:
+            var(--iy-primary);
+        }
+
+
+        /* =================================================
+           INPUT
+           ================================================= */
+
+        .iy-input-area {
+          flex-shrink:
+            0;
+
+          padding:
+            7px 10px 5px;
+
+          border-top:
+            1px solid #edf0f2;
 
           background:
             white;
+        }
+
+
+        .iy-input-wrap {
+          display:
+            flex;
+
+          align-items:
+            center;
+
+          gap:
+            7px;
+
+          padding:
+            4px;
+
+          border:
+            1px solid #dfe5e8;
+
+          border-radius:
+            14px;
+
+          background:
+            #f8fafb;
+
+          transition:
+            border-color .15s ease,
+            box-shadow .15s ease;
+        }
+
+
+        .iy-input-wrap:focus-within {
+          border-color:
+            var(--iy-accent);
+
+          box-shadow:
+            0 0 0 3px
+            rgba(20,184,166,.08);
+
+          background:
+            white;
+        }
+
+
+        .iy-input {
+          flex:
+            1;
+
+          min-width:
+            0;
+
+          height:
+            36px;
+
+          border:
+            none;
+
+          outline:
+            none;
+
+          background:
+            transparent;
+
+          color:
+            #20252b;
+
+          padding:
+            0 8px;
+
+          font-size:
+            13px;
+        }
+
+
+        .iy-input::placeholder {
+          color:
+            #a7adb3;
+        }
+
+
+        .iy-send {
+          width:
+            36px;
+
+          height:
+            36px;
 
           flex-shrink:
             0;
 
-        }
+          border:
+            none;
 
-
-        .iy-chat-footer strong {
+          border-radius:
+            11px;
 
           color:
-            #656d76;
+            white;
 
+          cursor:
+            pointer;
+
+          display:
+            flex;
+
+          align-items:
+            center;
+
+          justify-content:
+            center;
+
+          font-size:
+            16px;
+
+          font-weight:
+            700;
+
+          transition:
+            transform .15s ease,
+            opacity .15s ease;
         }
 
 
-        /* ==================================================
+        .iy-send:hover:not(:disabled) {
+          transform:
+            scale(1.04);
+        }
+
+
+        .iy-send:disabled {
+          opacity:
+            .4;
+
+          cursor:
+            not-allowed;
+        }
+
+
+        /* =================================================
+           CHAT BOTTOM
+           ================================================= */
+
+        .iy-chat-bottom {
+          height:
+            25px;
+
+          display:
+            flex;
+
+          align-items:
+            center;
+
+          justify-content:
+            space-between;
+
+          padding:
+            0 12px;
+
+          color:
+            #a7adb3;
+
+          font-size:
+            7px;
+        }
+
+
+        .iy-clear {
+          border:
+            none;
+
+          padding:
+            0;
+
+          background:
+            transparent;
+
+          color:
+            #9299a1;
+
+          cursor:
+            pointer;
+
+          font-size:
+            7.5px;
+        }
+
+
+        .iy-clear:hover {
+          color:
+            var(--iy-primary);
+        }
+
+
+        .iy-clear:disabled {
+          opacity:
+            .4;
+
+          cursor:
+            not-allowed;
+        }
+
+
+        /* =================================================
+           FOOTER
+           ================================================= */
+
+        .iy-footer {
+          flex-shrink:
+            0;
+
+          min-height:
+            25px;
+
+          display:
+            flex;
+
+          align-items:
+            center;
+
+          justify-content:
+            center;
+
+          gap:
+            4px;
+
+          border-top:
+            1px solid #f0f2f3;
+
+          background:
+            white;
+
+          color:
+            #a4aab0;
+
+          font-size:
+            7.5px;
+        }
+
+
+        .iy-footer strong {
+          color:
+            #69717a;
+
+          font-weight:
+            800;
+        }
+
+
+        .iy-footer-logo {
+          width:
+            17px;
+
+          height:
+            17px;
+
+          margin-left:
+            1px;
+
+          border-radius:
+            5px;
+
+          display:
+            inline-flex;
+
+          align-items:
+            center;
+
+          justify-content:
+            center;
+
+          color:
+            white;
+
+          font-size:
+            6.5px;
+
+          font-weight:
+            900;
+        }
+
+
+        /* =================================================
            MOBILE
-           ================================================== */
+           ================================================= */
 
         @media (max-width: 640px) {
 
           .iy-launcher {
-
             right:
               15px;
 
             bottom:
               15px;
-
           }
 
 
           .iy-launcher-label {
-
             display:
               none;
-
           }
 
 
           .iy-launcher-button {
-
             width:
               56px;
 
@@ -2792,36 +3914,32 @@ if (isContactQuestion) {
               56px;
 
             border-radius:
-              18px;
-
+              17px;
           }
 
 
           .iy-window {
-
             width:
-              calc(100vw - 22px);
+              calc(100vw - 18px);
 
             height:
               min(
-                680px,
-                calc(100vh - 44px)
+                720px,
+                calc(100dvh - 30px)
               );
 
             max-width:
-              calc(100vw - 22px);
+              calc(100vw - 18px);
 
             max-height:
-              calc(100vh - 44px);
+              calc(100dvh - 30px);
 
             border-radius:
               20px;
-
           }
 
 
           .iy-window.fullscreen {
-
             width:
               100vw;
 
@@ -2836,185 +3954,215 @@ if (isContactQuestion) {
 
             border-radius:
               0;
-
           }
 
 
-          .iy-home {
-
+          .iy-header {
             padding:
-              15px 13px;
-
+              13px 12px;
           }
 
 
-          .iy-welcome {
-
-            padding-bottom:
-              14px;
-
-          }
-
-
-          .iy-welcome-title {
-
-            font-size:
-              19px;
-
-          }
-
-
-          .iy-welcome-text {
-
-            font-size:
-              11.5px;
-
-          }
-
-
-          .iy-capability {
-
-            min-height:
-              79px;
-
-            padding:
-              10px;
-
-          }
-
-
-          .iy-capability-title {
-
-            font-size:
-              11px;
-
-          }
-
-
-          .iy-capability-description {
-
-            font-size:
-              9px;
-
-          }
-
-
-          .iy-message {
-
-            max-width:
-              91%;
-
-            font-size:
-              12.5px;
-
-          }
-
-        }
-
-
-        /* ==================================================
-           SMALL PHONES
-           ================================================== */
-
-        @media (max-width: 380px) {
-
-          .iy-window {
-
+          .iy-brand-logo {
             width:
-              calc(100vw - 14px);
-
-            max-width:
-              calc(100vw - 14px);
+              38px;
 
             height:
-              calc(100vh - 28px);
-
-            max-height:
-              calc(100vh - 28px);
+              38px;
 
             border-radius:
-              17px;
-
+              12px;
           }
 
 
-          .iy-capabilities {
-
-            gap:
-              6px;
-
-          }
-
-
-          .iy-capability {
-
-            min-height:
-              75px;
-
+          .iy-brand-name {
+            font-size:
+              14px;
           }
 
 
           .iy-brand-subtitle {
+            font-size:
+              8px;
+          }
 
-            display:
-              none;
 
+          .iy-status {
+            font-size:
+              7px;
           }
 
 
           .iy-action {
-
             width:
-              31px;
+              28px;
 
             height:
-              31px;
-
+              28px;
           }
 
+
+          .iy-home {
+            padding:
+              15px 12px 7px;
+          }
+
+
+          .iy-welcome {
+            padding-bottom:
+              13px;
+          }
+
+
+          .iy-welcome-icon {
+            width:
+              52px;
+
+            height:
+              52px;
+
+            border-radius:
+              16px;
+          }
+
+
+          .iy-welcome-title {
+            font-size:
+              19px;
+          }
+
+
+          .iy-welcome-text {
+            font-size:
+              10px;
+          }
+
+
+          .iy-capability {
+            min-height:
+              82px;
+
+            padding:
+              10px;
+          }
+
+
+          .iy-capability-title {
+            font-size:
+              10px;
+          }
+
+
+          .iy-capability-description {
+            font-size:
+              8px;
+          }
+
+
+          .iy-message {
+            max-width:
+              92%;
+
+            font-size:
+              11.5px;
+
+            padding:
+              9px 11px;
+          }
+
+
+          .iy-contact-grid {
+            grid-template-columns:
+              1fr 1fr;
+          }
+
+
+          .iy-input {
+            font-size:
+              16px;
+          }
+
+
+          .iy-footer {
+            min-height:
+              24px;
+          }
         }
 
 
-        /* ==================================================
-           LANDSCAPE
-           ================================================== */
+        /* =================================================
+           SMALL PHONES
+           ================================================= */
 
-        @media (
-          max-width: 900px
-        ) and (
-          orientation: landscape
-        ) {
+        @media (max-width: 380px) {
 
           .iy-window {
-
             width:
-              calc(100vw - 28px);
+              calc(100vw - 10px);
+
+            max-width:
+              calc(100vw - 10px);
 
             height:
-              calc(100vh - 28px);
+              calc(100dvh - 18px);
 
             max-height:
-              calc(100vh - 28px);
+              calc(100dvh - 18px);
 
+            border-radius:
+              18px;
           }
 
 
-          .iy-window.fullscreen {
+          .iy-capabilities {
+            gap:
+              6px;
+          }
 
+
+          .iy-capability {
+            min-height:
+              78px;
+
+            padding:
+              8px;
+          }
+
+
+          .iy-capability-icon {
             width:
-              100vw;
+              26px;
 
             height:
-              100dvh;
+              26px;
 
+            margin-bottom:
+              6px;
           }
 
+
+          .iy-capability-title {
+            font-size:
+              9px;
+          }
+
+
+          .iy-capability-description {
+            font-size:
+              7.5px;
+          }
+
+
+          .iy-prompt-text {
+            font-size:
+              8.5px;
+          }
         }
 
 
-        /* ==================================================
+        /* =================================================
            REDUCED MOTION
-           ================================================== */
+           ================================================= */
 
         @media (
           prefers-reduced-motion: reduce
@@ -3023,873 +4171,17 @@ if (isContactQuestion) {
           .iy-window,
           .iy-launcher-button,
           .iy-capability,
-          .iy-prompt {
-
+          .iy-prompt,
+          .iy-contact-link {
             animation:
               none !important;
 
             transition:
               none !important;
-
           }
-
-
-          .iy-dot {
-
-            animation:
-              none !important;
-
-          }
-
         }
 
       `}</style>
-
-
-      {/* =====================================================
-          FLOATING LAUNCHER
-          ===================================================== */}
-
-      <div className="iy-launcher">
-
-        {!open && (
-
-          <div
-            className="iy-launcher-label"
-            onClick={openChat}
-          >
-
-            ✦ Ask Ibrar AI
-
-          </div>
-
-        )}
-
-
-        <button
-          className="iy-launcher-button"
-          onClick={() => {
-
-            if (open) {
-
-              closeChat();
-
-            } else {
-
-              openChat();
-
-            }
-
-          }}
-          style={{
-
-            background:
-              `linear-gradient(
-                135deg,
-                ${theme.primary},
-                ${theme.secondary}
-              )`,
-
-          }}
-          aria-label={
-            open
-              ? "Close IY AI"
-              : "Ask Ibrar AI"
-          }
-        >
-
-          <span className="iy-launcher-symbol">
-
-            {open ? "×" : "✦"}
-
-          </span>
-
-          <span className="iy-launcher-text">
-
-            {open ? "CLOSE" : "IY AI"}
-
-          </span>
-
-        </button>
-
-      </div>
-
-
-      {/* =====================================================
-          CHAT WINDOW
-          ===================================================== */}
-
-      {open && (
-
-        <div
-          className={`iy-window ${
-            fullscreen
-              ? "fullscreen"
-              : ""
-          }`}
-          style={{
-
-            "--iy-primary":
-              theme.primary,
-
-            "--iy-secondary":
-              theme.secondary,
-
-          }}
-        >
-
-
-          {/* =================================================
-              HEADER
-              ================================================= */}
-
-          <header
-            className="iy-header"
-            style={{
-
-              background:
-                `linear-gradient(
-                  135deg,
-                  ${theme.dark},
-                  #102b4d
-                )`,
-
-            }}
-          >
-
-            <div className="iy-header-content">
-
-
-              <div className="iy-brand">
-
-                <div className="iy-logo">
-
-                  IY
-
-                </div>
-
-
-                <div className="iy-brand-info">
-
-                  <h2 className="iy-brand-title">
-
-                    IY AI ✦
-
-                  </h2>
-
-
-                  <p className="iy-brand-subtitle">
-
-                    Personal Portfolio Intelligence
-
-                  </p>
-
-
-                  <div className="iy-online">
-
-                    <span className="iy-online-dot" />
-
-                    Online · Ready to help
-
-                  </div>
-
-                </div>
-
-              </div>
-
-
-              <div className="iy-actions">
-
-
-                {/* THEME */}
-
-                <button
-                  className="iy-action"
-                  onClick={() =>
-                    setGenz(
-                      (previous) =>
-                        !previous
-                    )
-                  }
-                  title="Change appearance"
-                  aria-label="Change appearance"
-                >
-
-                  ◐
-
-                </button>
-
-
-                {/* FULLSCREEN */}
-
-                <button
-                  className="iy-action"
-                  onClick={
-                    toggleFullscreen
-                  }
-                  title={
-                    fullscreen
-                      ? "Exit fullscreen"
-                      : "Fullscreen"
-                  }
-                  aria-label={
-                    fullscreen
-                      ? "Exit fullscreen"
-                      : "Fullscreen"
-                  }
-                >
-
-                  {fullscreen
-                    ? "↙"
-                    : "⛶"}
-
-                </button>
-
-
-                {/* CLOSE */}
-
-                <button
-                  className="iy-action"
-                  onClick={closeChat}
-                  title="Close assistant"
-                  aria-label="Close assistant"
-                >
-
-                  ×
-
-                </button>
-
-              </div>
-
-            </div>
-
-          </header>
-
-
-          {/* =================================================
-              NAV
-              ================================================= */}
-
-          <div className="iy-nav">
-
-            <button
-              className="iy-nav-button"
-              onClick={() =>
-                setTab("home")
-              }
-              style={{
-
-                color:
-                  tab === "home"
-                    ? theme.accentDark
-                    : "#8a919a",
-
-                borderBottom:
-                  tab === "home"
-                    ? `2px solid ${theme.accent}`
-                    : "2px solid transparent",
-
-              }}
-            >
-
-              ✦ Discover
-
-            </button>
-
-
-            <button
-              className="iy-nav-button"
-              onClick={() =>
-                setTab("chat")
-              }
-              style={{
-
-                color:
-                  tab === "chat"
-                    ? theme.accentDark
-                    : "#8a919a",
-
-                borderBottom:
-                  tab === "chat"
-                    ? `2px solid ${theme.accent}`
-                    : "2px solid transparent",
-
-              }}
-            >
-
-              ◌ Conversation
-
-            </button>
-
-          </div>
-
-
-          {/* =================================================
-              HOME
-              ================================================= */}
-
-          {tab === "home" && (
-
-            <main className="iy-home">
-
-
-              <section className="iy-welcome">
-
-                <div
-                  className="iy-welcome-icon"
-                  style={{
-
-                    background:
-                      `linear-gradient(
-                        135deg,
-                        ${theme.primary},
-                        ${theme.secondary}
-                      )`,
-
-                  }}
-                >
-
-                  IY
-
-                </div>
-
-
-                <h1 className="iy-welcome-title">
-
-                  Hi, I'm{" "}
-
-                  <span>
-                    IY AI
-                  </span>{" "}
-
-                  👋
-
-                </h1>
-
-
-                <p className="iy-welcome-text">
-
-                  Your AI guide to Ibrar
-                  Yousafzai's portfolio.
-                  Ask about projects,
-                  skills, experience,
-                  technologies or working
-                  together.
-
-                </p>
-
-              </section>
-
-
-              <div className="iy-section-label">
-
-                Explore
-
-              </div>
-
-
-              <div className="iy-capabilities">
-
-                {prompts.map(
-                  (item, index) => (
-
-                    <button
-                      key={index}
-                      className="iy-capability"
-                      onClick={() =>
-                        sendMessage(
-                          item.question
-                        )
-                      }
-                    >
-
-                      <div
-                        className="iy-capability-icon"
-                        style={{
-
-                          background:
-                            `linear-gradient(
-                              135deg,
-                              ${theme.primary},
-                              ${theme.secondary}
-                            )`,
-
-                        }}
-                      >
-
-                        {item.icon}
-
-                      </div>
-
-
-                      <div className="iy-capability-title">
-
-                        {item.title}
-
-                      </div>
-
-
-                      <div className="iy-capability-description">
-
-                        {item.description}
-
-                      </div>
-
-                    </button>
-
-                  )
-                )}
-
-              </div>
-
-
-              <div className="iy-prompt-area">
-
-                <div className="iy-section-label">
-
-                  Try asking
-
-                </div>
-
-
-                {suggestedQuestions.map(
-                  (question, index) => (
-
-                    <button
-                      key={index}
-                      className="iy-prompt"
-                      onClick={() =>
-                        sendMessage(
-                          question
-                        )
-                      }
-                    >
-
-                      <span className="iy-prompt-icon">
-
-                        {index === 0
-                          ? "?"
-                          : index === 1
-                          ? "AI"
-                          : index === 2
-                          ? "⌘"
-                          : "↗"}
-
-                      </span>
-
-
-                      <span className="iy-prompt-text">
-
-                        {question}
-
-                      </span>
-
-
-                      <span className="iy-prompt-arrow">
-
-                        →
-
-                      </span>
-
-                    </button>
-
-                  )
-                )}
-
-              </div>
-
-
-              <div className="iy-created">
-
-                Created by{" "}
-
-                <strong>
-                  Ibrar Yousafzai
-                </strong>
-
-
-                <span
-                  className="iy-created-logo"
-                  style={{
-
-                    background:
-                      `linear-gradient(
-                        135deg,
-                        ${theme.primary},
-                        ${theme.secondary}
-                      )`,
-
-                  }}
-                >
-
-                  IY
-
-                </span>
-
-              </div>
-
-            </main>
-
-          )}
-
-
-          {/* =================================================
-              CHAT
-              ================================================= */}
-
-          {tab === "chat" && (
-
-            <section className="iy-chat">
-
-
-              {/* =============================================
-                  MESSAGES
-                  ============================================= */}
-
-              <div
-                className="iy-messages"
-                ref={scrollRef}
-              >
-
-                {messages.length === 0 && (
-
-                  <div className="iy-welcome">
-
-                    <div
-                      className="iy-welcome-icon"
-                      style={{
-
-                        background:
-                          `linear-gradient(
-                            135deg,
-                            ${theme.primary},
-                            ${theme.secondary}
-                          )`,
-
-                      }}
-                    >
-
-                      IY
-
-                    </div>
-
-
-                    <h1 className="iy-welcome-title">
-
-                      Ask{" "}
-
-                      <span>
-                        IY AI
-                      </span>
-
-                    </h1>
-
-
-                    <p className="iy-welcome-text">
-
-                      Ask me anything about
-                      Ibrar's portfolio.
-
-                    </p>
-
-                  </div>
-
-                )}
-
-
-                {messages.map(
-                  (message, index) => (
-
-                    <div
-                      key={index}
-                      className={`iy-message-row ${message.role}`}
-                    >
-
-
-                      <div
-                        className={`iy-message ${message.role}`}
-                        style={{
-
-                          background:
-                            message.role ===
-                            "user"
-
-                              ? theme.dark
-
-                              : theme.bot,
-
-                        }}
-                      >
-
-                        {message.role === "bot"
-                          ? renderBotText(message.text)
-                          : message.text}
-
-                      </div>
-
-
-                      {message.time && (
-
-                        <div className="iy-time">
-
-                          {message.time}
-
-                        </div>
-
-                      )}
-
-
-                      {message.role ===
-                        "bot" &&
-                        message.text && (
-
-                          <div className="iy-feedback">
-
-                            <button
-                              className="iy-feedback-button"
-                              onClick={() =>
-                                sendFeedback(
-                                  index,
-                                  "up"
-                                )
-                              }
-                              style={{
-                                opacity:
-                                  message.feedback ===
-                                  "up"
-                                    ? 1
-                                    : .5,
-                              }}
-                            >
-
-                              👍
-
-                            </button>
-
-
-                            <button
-                              className="iy-feedback-button"
-                              onClick={() =>
-                                sendFeedback(
-                                  index,
-                                  "down"
-                                )
-                              }
-                              style={{
-                                opacity:
-                                  message.feedback ===
-                                  "down"
-                                    ? 1
-                                    : .5,
-                              }}
-                            >
-
-                              👎
-
-                            </button>
-
-                          </div>
-
-                        )}
-
-
-                      {message.showContact && (
-
-                        <div className="iy-contact">
-
-                          <a
-                            href={LINKEDIN_URL}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="iy-contact-link"
-                          >
-                            ↗ LinkedIn
-                          </a>
-
-                          <a
-                            href={GITHUB_URL}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="iy-contact-link"
-                          >
-                            ◇ GitHub
-                          </a>
-
-                          <a
-                            href={`mailto:${CONTACT_EMAIL}`}
-                            className="iy-contact-link"
-                          >
-                            @ Email
-                          </a>
-
-                          <a
-                            href={CONTACT_FORM_URL}
-                            className="iy-contact-link"
-                          >
-                            ✎ Contact Form
-                          </a>
-
-                        </div>
-
-                      )}
-
-
-                    </div>
-
-                  )
-                )}
-
-
-                {typing && (
-
-                  <div className="iy-typing">
-
-                    <div className="iy-dots">
-
-                      <span className="iy-dot" />
-
-                      <span className="iy-dot" />
-
-                      <span className="iy-dot" />
-
-                    </div>
-
-                    IY AI is thinking...
-
-                  </div>
-
-                )}
-
-              </div>
-
-
-              {/* =============================================
-                  SUGGESTIONS
-                  ============================================= */}
-
-              <div className="iy-suggestions">
-
-                {suggestedQuestions.map(
-                  (question, index) => (
-
-                    <button
-                      key={index}
-                      className="iy-suggestion"
-                      onClick={() =>
-                        sendMessage(
-                          question
-                        )
-                      }
-                      disabled={typing}
-                    >
-
-                      {question}
-
-                    </button>
-
-                  )
-                )}
-
-              </div>
-
-
-              {/* =============================================
-                  INPUT
-                  ============================================= */}
-
-              <div className="iy-input-area">
-
-                <input
-                  className="iy-input"
-                  value={input}
-                  disabled={typing}
-                  placeholder="Ask IY anything..."
-                  autoComplete="off"
-                  autoCorrect="on"
-                  enterKeyHint="send"
-                  onChange={(event) =>
-                    setInput(
-                      event.target.value
-                    )
-                  }
-                  onKeyDown={(event) => {
-
-                    if (
-                      event.key ===
-                        "Enter" &&
-                      !event.shiftKey
-                    ) {
-
-                      event.preventDefault();
-
-                      sendMessage(input);
-
-                    }
-
-                  }}
-                />
-
-
-                <button
-                  className="iy-send"
-                  disabled={
-                    typing ||
-                    !input.trim()
-                  }
-                  onClick={() =>
-                    sendMessage(input)
-                  }
-                  style={{
-
-                    background:
-                      `linear-gradient(
-                        135deg,
-                        ${theme.primary},
-                        ${theme.secondary}
-                      )`,
-
-                  }}
-                  aria-label="Send message"
-                >
-
-                  ↑
-
-                </button>
-
-              </div>
-
-
-              {/* =============================================
-                  FOOTER
-                  ============================================= */}
-
-              <div className="iy-chat-footer">
-
-                Created by{" "}
-
-                <strong>
-                  Ibrar Yousafzai
-                </strong>
-
-                {" · "}
-
-                <strong>
-                  IY
-                </strong>
-
-              </div>
-
-
-            </section>
-
-          )}
-
-        </div>
-
-      )}
-
-    </div>
-
+    </>
   );
-
 }
