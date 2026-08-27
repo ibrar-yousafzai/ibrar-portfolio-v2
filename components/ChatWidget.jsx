@@ -1,282 +1,3887 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import {
+  Fragment,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+
+/* =========================================================
+   IY AI — PERSONAL PORTFOLIO ASSISTANT
+   ========================================================= */
 
 const API_URL = "https://iy-portfolio-chatbot.onrender.com/chat";
-const FEEDBACK_URL = "https://iy-portfolio-chatbot.onrender.com/feedback";
-const CONTACT_EMAIL = "ibrar.yousafzai.ai@gmail.com";
+const FEEDBACK_URL =
+  "https://iy-portfolio-chatbot.onrender.com/feedback";
+
+const CONTACT_EMAIL =
+  "ibrar.yousafzai.ai@gmail.com";
+
+const LINKEDIN_URL =
+  "https://pk.linkedin.com/in/ibrar-yousafzai";
+
+const GITHUB_URL =
+  "https://github.com/ibrar-yousafzai";
+
+/*
+  If your portfolio has a Contact section,
+  keep "#contact".
+
+  If you have a separate contact page,
+  replace it with your real URL.
+*/
+const CONTACT_FORM_URL = "#contact";
+
+
+function renderBotText(text) {
+
+  if (!text)
+    return null;
+
+
+  const cleanText =
+    String(text)
+      .replace(/\\\*\\\*/g, "**")
+      .replace(/\\n/g, "\n");
+
+  const lines =
+    cleanText.split("\n");
+
+
+  return lines.map(
+    (line, lineIndex) => {
+
+      const parts =
+        line.split(/(\*\*.*?\*\*)/g);
+
+
+      return (
+
+        <Fragment key={lineIndex}>
+
+          {parts.map(
+            (part, partIndex) => {
+
+              if (
+                part.startsWith("**") &&
+                part.endsWith("**")
+              ) {
+
+                return (
+
+                  <strong key={partIndex}>
+                    {part.slice(2, -2)}
+                  </strong>
+
+                );
+
+              }
+
+
+              return (
+
+                <Fragment key={partIndex}>
+                  {part}
+                </Fragment>
+
+              );
+
+            }
+          )}
+
+
+          {lineIndex < lines.length - 1 && (
+            <br />
+          )}
+
+        </Fragment>
+
+      );
+
+    }
+  );
+
+}
+
 
 export default function ChatWidget() {
+
+  /* =======================================================
+     STATE
+     ======================================================= */
+
   const [open, setOpen] = useState(false);
-  const [tab, setTab] = useState("home");
-  const [genz, setGenz] = useState(false);
-  const [messages, setMessages] = useState([]);
-  const [input, setInput] = useState("");
-  const [typing, setTyping] = useState(false);
-  const [sessionId, setSessionId] = useState("");
-  const scrollRef = useRef(null);
 
-   useEffect(() => {
-    if (open) {
-      document.title = "💬 IY Assistant — Ask me anything";
-    } else {
-      document.title = "Ibrar Yousafzai — Data Scientist | AI & ML";
-    }
-    return () => {
-      document.title = "Ibrar Yousafzai — Data Scientist | AI & ML";
-    };
-  }, [open]);
+  const [fullscreen, setFullscreen] =
+    useState(false);
 
-    useEffect(() => {
-    scrollRef.current?.scrollTo(0, scrollRef.current.scrollHeight);
-  }, [messages]);
+  const [tab, setTab] =
+    useState("home");
 
-  function renderBold(text) {
-    const escaped = text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-    const html = escaped.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
-    return { __html: html };
-  }
+  const [messages, setMessages] =
+    useState([]);
 
-  function detectsContactIntent(userText, botText) {
-    const combined = (userText + " " + botText).toLowerCase();
-    return ["contact", "hire", "linkedin", "reach", "freelance", "email"].some(w => combined.includes(w));
-  }
+  const [input, setInput] =
+    useState("");
 
-  async function sendMessage(text) {
-    text = (text || "").trim();
-    if (!text) return;
-    setTab("chat");
-    setInput("");
-    const userMsg = { role: "user", text, time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) };
-    setMessages(prev => [...prev, userMsg]);
-    setTyping(true);
+  const [typing, setTyping] =
+    useState(false);
 
-    let fullText = "";
-    const botIndex = messages.length + 1;
-    setMessages(prev => [...prev, { role: "bot", text: "", time: "", feedback: null }]);
+  const [genz, setGenz] =
+    useState(false);
+
+  const [sessionId, setSessionId] =
+    useState("");
+
+  const scrollRef =
+    useRef(null);
+
+
+  /* =======================================================
+     SESSION
+     ======================================================= */
+
+  useEffect(() => {
 
     try {
-      const res = await fetch(API_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: text, session_id: sessionId })
-      });
-      const reader = res.body.getReader();
-      const decoder = new TextDecoder();
 
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        const chunk = decoder.decode(value);
-        chunk.split("\n\n").forEach(line => {
-          if (line.startsWith("data: ") && line !== "data: [DONE]") {
-            try {
-              const data = JSON.parse(line.slice(6));
-              fullText += data.text;
-              setMessages(prev => {
-                const copy = [...prev];
-                copy[botIndex] = { ...copy[botIndex], text: fullText };
-                return copy;
-              });
-            } catch (e) {}
-          }
-        });
+      let id =
+        sessionStorage.getItem(
+          "iy_ai_session"
+        );
+
+      if (!id) {
+
+        id =
+          crypto.randomUUID();
+
+        sessionStorage.setItem(
+          "iy_ai_session",
+          id
+        );
+
       }
-    } catch (err) {
-      fullText = "Sorry, something went wrong connecting to the server.";
-      setMessages(prev => {
-        const copy = [...prev];
-        copy[botIndex] = { ...copy[botIndex], text: fullText };
-        return copy;
-      });
+
+      setSessionId(id);
+
+    } catch {
+
+      setSessionId(
+        `iy-${Date.now()}`
+      );
+
     }
 
-    setTyping(false);
-    setMessages(prev => {
-      const copy = [...prev];
-      copy[botIndex] = {
-        ...copy[botIndex],
-        text: fullText,
-        time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-        showContact: detectsContactIntent(text, fullText)
-      };
-      return copy;
-    });
-  }
+  }, []);
 
-  function sendFeedback(index, fb) {
-    setMessages(prev => {
-      const copy = [...prev];
-      copy[index] = { ...copy[index], feedback: fb };
-      return copy;
+
+  /* =======================================================
+     AUTO SCROLL
+     ======================================================= */
+
+  useEffect(() => {
+
+    if (!scrollRef.current)
+      return;
+
+    requestAnimationFrame(() => {
+
+      scrollRef.current.scrollTo({
+        top:
+          scrollRef.current
+            .scrollHeight,
+        behavior: "smooth",
+      });
+
     });
-    fetch(FEEDBACK_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ session_id: sessionId, message: messages[index]?.text, feedback: fb })
-    }).catch(() => {});
-  }
+
+  }, [messages, typing]);
+
+
+  /* =======================================================
+     ESC KEY
+     ======================================================= */
+
+  useEffect(() => {
+
+    const handleKeyDown =
+      (event) => {
+
+        if (
+          event.key !== "Escape"
+        )
+          return;
+
+        if (fullscreen) {
+
+          setFullscreen(false);
+
+          return;
+
+        }
+
+        if (open) {
+
+          setOpen(false);
+
+        }
+
+      };
+
+
+    window.addEventListener(
+      "keydown",
+      handleKeyDown
+    );
+
+
+    return () => {
+
+      window.removeEventListener(
+        "keydown",
+        handleKeyDown
+      );
+
+    };
+
+  }, [
+    fullscreen,
+    open,
+  ]);
+
+
+  /* =======================================================
+     BODY LOCK WHEN FULLSCREEN
+     ======================================================= */
+
+  useEffect(() => {
+
+    if (fullscreen) {
+
+      document.body.style.overflow =
+        "hidden";
+
+    } else {
+
+      document.body.style.overflow =
+        "";
+
+    }
+
+
+    return () => {
+
+      document.body.style.overflow =
+        "";
+
+    };
+
+  }, [fullscreen]);
+
+
+  /* =======================================================
+     THEME
+     ======================================================= */
 
   const theme = genz
-    ? { from: "#7c3aed", to: "#ec4899", accent: "#f472b6", accentDark: "#db2777", botBg: "#f3e8ff", userBg: "#7c3aed" }
-    : { from: "#0a1e42", to: "#14304f", accent: "#14b8a6", accentDark: "#0d9488", botBg: "#f0f1f5", userBg: "#0a1e42" };
+    ? {
 
-  const quickQuestions = [
-    { icon: "💼", q: "What projects has Ibrar built?" },
-    { icon: "🛠️", q: "What is Ibrar's tech stack?" },
-    { icon: "🤝", q: "Is Ibrar available for freelance work?" },
-    { icon: "📩", q: "How can I contact Ibrar?" }
+        primary: "#8b5cf6",
+
+        secondary: "#ec4899",
+
+        accent: "#d946ef",
+
+        accentDark: "#a21caf",
+
+        dark: "#171126",
+
+        soft: "#faf5ff",
+
+        bot: "#f5f3ff",
+
+        border: "#e9d5ff",
+
+      }
+    : {
+
+        primary: "#0f766e",
+
+        secondary: "#06b6d4",
+
+        accent: "#14b8a6",
+
+        accentDark: "#0f766e",
+
+        dark: "#08111f",
+
+        soft: "#f0fdfa",
+
+        bot: "#f4f7f8",
+
+        border: "#dbe4e7",
+
+      };
+
+
+  /* =======================================================
+     QUICK PROMPTS
+     ======================================================= */
+
+  const prompts = [
+
+    {
+      icon: "◈",
+      title: "Explore Projects",
+      description:
+        "See what Ibrar has built",
+      question:
+        "What projects has Ibrar built?",
+    },
+
+    {
+      icon: "⌘",
+      title: "Tech Stack",
+      description:
+        "Explore skills & technologies",
+      question:
+        "What is Ibrar's tech stack?",
+    },
+
+    {
+      icon: "✦",
+      title: "Experience",
+      description:
+        "Learn about Ibrar's journey",
+      question:
+        "Tell me about Ibrar's experience.",
+    },
+
+    {
+      icon: "↗",
+      title: "Work Together",
+      description:
+        "Discuss freelance opportunities",
+      question:
+        "Is Ibrar available for freelance work?",
+    },
+
   ];
 
+
+  const suggestedQuestions = [
+
+    "Tell me about Ibrar",
+
+    "What AI projects has he built?",
+
+    "What technologies does he use?",
+
+    "How can I contact him?",
+
+  ];
+
+
+  /* =======================================================
+     OPEN CHAT
+     ======================================================= */
+
+  function openChat() {
+
+    setOpen(true);
+
+    setFullscreen(false);
+
+  }
+
+
+  /* =======================================================
+     CLOSE CHAT
+     ======================================================= */
+
+  function closeChat() {
+
+    setOpen(false);
+
+    setFullscreen(false);
+
+  }
+
+
+  /* =======================================================
+     FULLSCREEN
+     ======================================================= */
+
+  function toggleFullscreen() {
+
+    setFullscreen(
+      (previous) =>
+        !previous
+    );
+
+  }
+
+
+  /* =======================================================
+     CONTACT DETECTION
+     ======================================================= */
+
+  function detectsContactIntent(userText) {
+
+  const text =
+    (userText || "").toLowerCase();
+
+  const contactWords = [
+
+    "contact",
+
+    "contact him",
+
+    "contact ibar",
+
+    "contact ibrar",
+
+    "how can i contact",
+
+    "how do i contact",
+
+    "reach him",
+
+    "reach ibrar",
+
+    "reach out",
+
+    "hire him",
+
+    "hire ibrar",
+
+    "hire",
+
+    "freelance",
+
+    "freelancing",
+
+    "work with him",
+
+    "work with ibrar",
+
+    "email",
+
+    "linkedin",
+
+    "github",
+
+    "connect with him",
+
+    "connect with ibrar",
+
+    "get in touch",
+
+    "talk to him",
+
+    "talk with him",
+
+  ];
+
+  return contactWords.some(
+    (word) =>
+      text.includes(word)
+  );
+
+}
+
+
+  /* =======================================================
+     SEND MESSAGE
+     ======================================================= */
+
+  async function sendMessage(
+    text
+  ) {
+
+      text =
+     (text || "").trim();
+
+     if (!text || typing)
+     return;
+    const isContactQuestion = detectsContactIntent(text);
+
+
+    setTab("chat");
+
+    setInput("");
+
+    const userMessage = {
+
+      role: "user",
+
+      text,
+
+      time:
+        new Date().toLocaleTimeString(
+          [],
+          {
+            hour: "2-digit",
+            minute: "2-digit",
+          }
+        ),
+
+    };
+
+
+    const botIndex =
+      messages.length + 1;
+
+
+    setMessages(
+      (previous) => [
+
+        ...previous,
+
+        userMessage,
+
+        {
+          role: "bot",
+
+          text: "",
+
+          time: "",
+
+          feedback: null,
+
+          showContact: false,
+
+        },
+
+      ]
+    );
+
+
+    setTyping(true);
+    /* =======================================================
+   SPECIAL CONTACT RESPONSE
+   Do NOT send contact questions to the RAG response UI.
+   This prevents URLs/contact information appearing
+   inside the AI answer.
+   ======================================================= */
+
+if (isContactQuestion) {
+
+  setTimeout(() => {
+
+    setMessages(
+      (previous) => {
+
+        const copy =
+          [...previous];
+
+        const lastIndex =
+          copy.length - 1;
+
+        copy[lastIndex] = {
+
+          ...copy[lastIndex],
+
+          text:
+            "Sure! Here are the best ways to connect with Ibrar.",
+
+          time:
+            new Date().toLocaleTimeString(
+              [],
+              {
+                hour: "2-digit",
+                minute: "2-digit",
+              }
+            ),
+
+          showContact:
+            true,
+
+        };
+
+        return copy;
+
+      }
+    );
+
+    setTyping(false);
+
+  }, 350);
+
+  return;
+}
+
+    let fullText = "";
+
+
+    try {
+
+      const response =
+        await fetch(
+          API_URL,
+          {
+
+            method: "POST",
+
+            headers: {
+              "Content-Type":
+                "application/json",
+            },
+
+            body:
+              JSON.stringify({
+
+                message: text,
+
+                session_id:
+                  sessionId,
+
+              }),
+
+          }
+        );
+
+
+      if (!response.ok) {
+
+        throw new Error(
+          `Server error: ${response.status}`
+        );
+
+      }
+
+
+      if (!response.body) {
+
+        throw new Error(
+          "Streaming is not available."
+        );
+
+      }
+
+
+      const reader =
+        response.body.getReader();
+
+
+      const decoder =
+        new TextDecoder();
+
+
+      while (true) {
+
+        const {
+          done,
+          value,
+        } =
+          await reader.read();
+
+
+        if (done)
+          break;
+
+
+        const chunk =
+          decoder.decode(
+            value,
+            {
+              stream: true,
+            }
+          );
+
+
+        const lines =
+          chunk.split("\n");
+
+
+        for (
+          const line of lines
+        ) {
+
+          if (
+            !line.startsWith(
+              "data: "
+            )
+          )
+            continue;
+
+
+          const data =
+            line.slice(6);
+
+
+          if (
+            data ===
+            "[DONE]"
+          )
+            continue;
+
+
+          try {
+
+            const parsed =
+              JSON.parse(data);
+
+
+            if (parsed.text) {
+
+              fullText +=
+                parsed.text;
+
+
+              setMessages(
+                (previous) => {
+
+                  const copy =
+                    [...previous];
+
+
+                  if (
+                    copy[botIndex]
+                  ) {
+
+                    copy[
+                      botIndex
+                    ] = {
+
+                      ...copy[
+                        botIndex
+                      ],
+
+                      text:
+                        fullText,
+
+                    };
+
+                  }
+
+
+                  return copy;
+
+                }
+              );
+
+            }
+
+          } catch {
+
+            /* Ignore malformed SSE chunks */
+
+          }
+
+        }
+
+      }
+
+    } catch (error) {
+
+      console.error(
+        "IY AI error:",
+        error
+      );
+
+
+      fullText =
+        "I’m having trouble connecting to my AI service right now. Please try again in a moment.";
+
+
+      setMessages(
+        (previous) => {
+
+          const copy =
+            [...previous];
+
+
+          if (
+            copy[botIndex]
+          ) {
+
+            copy[
+              botIndex
+            ] = {
+
+              ...copy[
+                botIndex
+              ],
+
+              text:
+                fullText,
+
+            };
+
+          }
+
+
+          return copy;
+
+        }
+      );
+
+    }
+
+
+    setTyping(false);
+
+
+    setMessages(
+      (previous) => {
+
+        const copy =
+          [...previous];
+
+
+        if (
+          copy[botIndex]
+        ) {
+
+          copy[
+            botIndex
+          ] = {
+
+            ...copy[
+              botIndex
+            ],
+
+            text:
+              fullText,
+
+            time:
+              new Date().toLocaleTimeString(
+                [],
+                {
+                  hour:
+                    "2-digit",
+
+                  minute:
+                    "2-digit",
+                }
+              ),
+
+            showContact:
+              detectsContactIntent(
+                text,
+                fullText
+              ),
+
+          };
+
+        }
+
+
+        return copy;
+
+      }
+    );
+
+  }
+
+
+  /* =======================================================
+     FEEDBACK
+     ======================================================= */
+
+  function sendFeedback(
+    index,
+    feedback
+  ) {
+
+    setMessages(
+      (previous) => {
+
+        const copy =
+          [...previous];
+
+
+        if (
+          copy[index]
+        ) {
+
+          copy[index] = {
+
+            ...copy[index],
+
+            feedback,
+
+          };
+
+        }
+
+
+        return copy;
+
+      }
+    );
+
+
+    fetch(
+      FEEDBACK_URL,
+      {
+
+        method: "POST",
+
+        headers: {
+          "Content-Type":
+            "application/json",
+        },
+
+        body:
+          JSON.stringify({
+
+            session_id:
+              sessionId,
+
+            message:
+              messages[index]
+                ?.text || "",
+
+            feedback,
+
+          }),
+
+      }
+    ).catch(() => {});
+
+  }
+
+
+  /* =======================================================
+     CLEAR CHAT
+     ======================================================= */
+
+  function clearChat() {
+
+    setMessages([]);
+
+    setTab("home");
+
+  }
+
+
+  /* =======================================================
+     UI
+     ======================================================= */
+
   return (
-    <div style={{ fontFamily: "-apple-system, Segoe UI, sans-serif" }}>
-            <div style={{ position: "fixed", bottom: 24, right: 24, zIndex: 9999, display: "flex", alignItems: "center", gap: 10, flexDirection: "row-reverse" }}>
-        <div
-          onClick={() => setOpen(!open)}
-          style={{
-            width: 62, height: 62, borderRadius: "50%",
-            background: `linear-gradient(135deg, ${theme.from}, ${theme.to})`, color: "white",
-            display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer",
-            boxShadow: "0 4px 18px rgba(0,0,0,0.25)", fontWeight: 700, fontSize: open ? 22 : 18,
-            transition: "transform 0.15s"
-          }}
-        >
-          {open ? "✕" : "IY"}
-        </div>
+
+    <div className="iy-root">
+
+      <style jsx global>{`
+
+        /* ==================================================
+           BASE
+           ================================================== */
+
+        .iy-root {
+
+          font-family:
+            Inter,
+            ui-sans-serif,
+            system-ui,
+            -apple-system,
+            BlinkMacSystemFont,
+            "Segoe UI",
+            sans-serif;
+
+          -webkit-font-smoothing:
+            antialiased;
+
+          text-rendering:
+            optimizeLegibility;
+
+        }
+
+
+        .iy-root *,
+        .iy-root *::before,
+        .iy-root *::after {
+
+          box-sizing:
+            border-box;
+
+        }
+
+
+        /* ==================================================
+           LAUNCHER
+           ================================================== */
+
+        .iy-launcher {
+
+          position:
+            fixed;
+
+          right:
+            24px;
+
+          bottom:
+            24px;
+
+          z-index:
+            99990;
+
+          display:
+            flex;
+
+          align-items:
+            center;
+
+          gap:
+            10px;
+
+        }
+
+
+        .iy-launcher-button {
+
+          position:
+            relative;
+
+          width:
+            62px;
+
+          height:
+            62px;
+
+          border-radius:
+            20px;
+
+          border:
+            1px solid
+            rgba(255,255,255,.3);
+
+          cursor:
+            pointer;
+
+          color:
+            white;
+
+          display:
+            flex;
+
+          flex-direction:
+            column;
+
+          align-items:
+            center;
+
+          justify-content:
+            center;
+
+          gap:
+            1px;
+
+          box-shadow:
+            0 14px 35px
+            rgba(0,0,0,.25);
+
+          transition:
+            transform .2s ease,
+            box-shadow .2s ease;
+
+        }
+
+
+        .iy-launcher-button:hover {
+
+          transform:
+            translateY(-3px);
+
+          box-shadow:
+            0 18px 42px
+            rgba(0,0,0,.3);
+
+        }
+
+
+        .iy-launcher-symbol {
+
+          font-size:
+            17px;
+
+          line-height:
+            1;
+
+          font-weight:
+            800;
+
+        }
+
+
+        .iy-launcher-text {
+
+          font-size:
+            9px;
+
+          font-weight:
+            700;
+
+          letter-spacing:
+            .2px;
+
+          opacity:
+            .9;
+
+        }
+
+
+        .iy-launcher-label {
+
+          background:
+            rgba(255,255,255,.97);
+
+          color:
+            #20242a;
+
+          border:
+            1px solid
+            rgba(0,0,0,.06);
+
+          padding:
+            10px 14px;
+
+          border-radius:
+            16px;
+
+          box-shadow:
+            0 8px 25px
+            rgba(0,0,0,.12);
+
+          font-size:
+            12px;
+
+          font-weight:
+            650;
+
+          white-space:
+            nowrap;
+
+        }
+
+
+        /* ==================================================
+           CHAT WINDOW
+           ================================================== */
+
+        .iy-window {
+
+          position:
+            fixed;
+
+          z-index:
+            99989;
+
+          width:
+            430px;
+
+          height:
+            680px;
+
+          max-width:
+            calc(100vw - 40px);
+
+          max-height:
+            calc(100vh - 70px);
+
+          left:
+            50%;
+
+          top:
+            50%;
+
+          transform:
+            translate(-50%, -50%);
+
+          background:
+            #ffffff;
+
+          border:
+            1px solid
+            rgba(15,23,42,.1);
+
+          border-radius:
+            24px;
+
+          overflow:
+            hidden;
+
+          display:
+            flex;
+
+          flex-direction:
+            column;
+
+          box-shadow:
+            0 35px 100px
+            rgba(0,0,0,.27),
+
+            0 8px 35px
+            rgba(0,0,0,.12);
+
+          animation:
+            iy-window-in
+            .25s ease-out;
+
+        }
+
+
+        @keyframes iy-window-in {
+
+          from {
+
+            opacity:
+              0;
+
+            transform:
+              translate(-50%, -47%)
+              scale(.96);
+
+          }
+
+          to {
+
+            opacity:
+              1;
+
+            transform:
+              translate(-50%, -50%)
+              scale(1);
+
+          }
+
+        }
+
+
+        /* ==================================================
+           FULLSCREEN
+           ================================================== */
+
+        .iy-window.fullscreen {
+
+          inset:
+            0;
+
+          width:
+            100vw;
+
+          height:
+            100vh;
+
+          max-width:
+            100vw;
+
+          max-height:
+            100vh;
+
+          left:
+            0;
+
+          top:
+            0;
+
+          transform:
+            none;
+
+          border-radius:
+            0;
+
+          border:
+            none;
+
+        }
+
+
+        /* ==================================================
+           HEADER
+           ================================================== */
+
+        .iy-header {
+
+          position:
+            relative;
+
+          flex-shrink:
+            0;
+
+          padding:
+            15px 16px;
+
+          color:
+            white;
+
+          overflow:
+            hidden;
+
+        }
+
+
+        .iy-header::before {
+
+          content:
+            "";
+
+          position:
+            absolute;
+
+          width:
+            160px;
+
+          height:
+            160px;
+
+          right:
+            -70px;
+
+          top:
+            -100px;
+
+          border-radius:
+            50%;
+
+          background:
+            rgba(255,255,255,.08);
+
+        }
+
+
+        .iy-header-content {
+
+          position:
+            relative;
+
+          z-index:
+            2;
+
+          display:
+            flex;
+
+          align-items:
+            center;
+
+          justify-content:
+            space-between;
+
+          gap:
+            12px;
+
+        }
+
+
+        .iy-brand {
+
+          display:
+            flex;
+
+          align-items:
+            center;
+
+          gap:
+            10px;
+
+          min-width:
+            0;
+
+        }
+
+
+        .iy-logo {
+
+          width:
+            42px;
+
+          height:
+            42px;
+
+          flex:
+            0 0 42px;
+
+          border-radius:
+            13px;
+
+          background:
+            rgba(255,255,255,.14);
+
+          border:
+            1px solid
+            rgba(255,255,255,.25);
+
+          display:
+            flex;
+
+          align-items:
+            center;
+
+          justify-content:
+            center;
+
+          font-size:
+            13px;
+
+          font-weight:
+            850;
+
+          letter-spacing:
+            -.5px;
+
+          box-shadow:
+            inset 0 1px
+            rgba(255,255,255,.12);
+
+        }
+
+
+        .iy-brand-info {
+
+          min-width:
+            0;
+
+        }
+
+
+        .iy-brand-title {
+
+          margin:
+            0;
+
+          font-size:
+            16px;
+
+          line-height:
+            1.15;
+
+          font-weight:
+            800;
+
+          letter-spacing:
+            -.3px;
+
+        }
+
+
+        .iy-brand-subtitle {
+
+          margin:
+            4px 0 0;
+
+          font-size:
+            10px;
+
+          line-height:
+            1.3;
+
+          opacity:
+            .72;
+
+          white-space:
+            nowrap;
+
+          overflow:
+            hidden;
+
+          text-overflow:
+            ellipsis;
+
+        }
+
+
+        .iy-online {
+
+          display:
+            flex;
+
+          align-items:
+            center;
+
+          gap:
+            5px;
+
+          margin-top:
+            4px;
+
+          font-size:
+            9px;
+
+          opacity:
+            .78;
+
+        }
+
+
+        .iy-online-dot {
+
+          width:
+            6px;
+
+          height:
+            6px;
+
+          border-radius:
+            50%;
+
+          background:
+            #4ade80;
+
+          box-shadow:
+            0 0 0 3px
+            rgba(74,222,128,.12);
+
+        }
+
+
+        /* ==================================================
+           HEADER ACTIONS
+           ================================================== */
+
+        .iy-actions {
+
+          display:
+            flex;
+
+          align-items:
+            center;
+
+          gap:
+            5px;
+
+          flex-shrink:
+            0;
+
+        }
+
+
+        .iy-action {
+
+          width:
+            34px;
+
+          height:
+            34px;
+
+          border:
+            1px solid
+            rgba(255,255,255,.12);
+
+          border-radius:
+            10px;
+
+          color:
+            white;
+
+          background:
+            rgba(255,255,255,.09);
+
+          display:
+            flex;
+
+          align-items:
+            center;
+
+          justify-content:
+            center;
+
+          cursor:
+            pointer;
+
+          font-size:
+            13px;
+
+          transition:
+            background .15s ease,
+            transform .15s ease;
+
+        }
+
+
+        .iy-action:hover {
+
+          background:
+            rgba(255,255,255,.18);
+
+          transform:
+            translateY(-1px);
+
+        }
+
+
+        /* ==================================================
+           NAVIGATION
+           ================================================== */
+
+        .iy-nav {
+
+          display:
+            flex;
+
+          flex-shrink:
+            0;
+
+          background:
+            #ffffff;
+
+          border-bottom:
+            1px solid #edf0f2;
+
+        }
+
+
+        .iy-nav-button {
+
+          flex:
+            1;
+
+          height:
+            45px;
+
+          border:
+            none;
+
+          background:
+            transparent;
+
+          color:
+            #8a919a;
+
+          font-size:
+            12px;
+
+          font-weight:
+            700;
+
+          cursor:
+            pointer;
+
+          border-bottom:
+            2px solid
+            transparent;
+
+        }
+
+
+        /* ==================================================
+           HOME
+           ================================================== */
+
+        .iy-home {
+
+          flex:
+            1;
+
+          min-height:
+            0;
+
+          overflow-y:
+            auto;
+
+          padding:
+            19px;
+
+          background:
+            linear-gradient(
+              180deg,
+              #ffffff 0%,
+              #fbfcfd 100%
+            );
+
+        }
+
+
+        .iy-welcome {
+
+          text-align:
+            center;
+
+          padding:
+            5px 5px 17px;
+
+        }
+
+
+        .iy-welcome-icon {
+
+          width:
+            58px;
+
+          height:
+            58px;
+
+          margin:
+            0 auto 12px;
+
+          border-radius:
+            18px;
+
+          color:
+            white;
+
+          display:
+            flex;
+
+          align-items:
+            center;
+
+          justify-content:
+            center;
+
+          font-size:
+            18px;
+
+          font-weight:
+            850;
+
+          box-shadow:
+            0 10px 25px
+            rgba(0,0,0,.14);
+
+        }
+
+
+        .iy-welcome-title {
+
+          margin:
+            0;
+
+          color:
+            #111827;
+
+          font-size:
+            21px;
+
+          font-weight:
+            850;
+
+          letter-spacing:
+            -.5px;
+
+        }
+
+
+        .iy-welcome-title span {
+
+          background:
+            linear-gradient(
+              90deg,
+              var(--iy-primary),
+              var(--iy-secondary)
+            );
+
+          -webkit-background-clip:
+            text;
+
+          background-clip:
+            text;
+
+          color:
+            transparent;
+
+        }
+
+
+        .iy-welcome-text {
+
+          max-width:
+            340px;
+
+          margin:
+            8px auto 0;
+
+          color:
+            #737b86;
+
+          font-size:
+            12px;
+
+          line-height:
+            1.55;
+
+        }
+
+
+        /* ==================================================
+           CAPABILITY CARDS
+           ================================================== */
+
+        .iy-section-label {
+
+          margin:
+            2px 0 9px;
+
+          color:
+            #9aa1aa;
+
+          font-size:
+            9px;
+
+          font-weight:
+            800;
+
+          letter-spacing:
+            1.3px;
+
+          text-transform:
+            uppercase;
+
+        }
+
+
+        .iy-capabilities {
+
+          display:
+            grid;
+
+          grid-template-columns:
+            1fr 1fr;
+
+          gap:
+            8px;
+
+        }
+
+
+        .iy-capability {
+
+          min-height:
+            84px;
+
+          padding:
+            12px;
+
+          border:
+            1px solid #e8ebee;
+
+          border-radius:
+            14px;
+
+          background:
+            #ffffff;
+
+          cursor:
+            pointer;
+
+          text-align:
+            left;
+
+          transition:
+            transform .15s ease,
+            border-color .15s ease,
+            box-shadow .15s ease;
+
+        }
+
+
+        .iy-capability:hover {
+
+          transform:
+            translateY(-2px);
+
+          border-color:
+            #d6dde1;
+
+          box-shadow:
+            0 8px 22px
+            rgba(0,0,0,.06);
+
+        }
+
+
+        .iy-capability-icon {
+
+          width:
+            31px;
+
+          height:
+            31px;
+
+          border-radius:
+            9px;
+
+          display:
+            flex;
+
+          align-items:
+            center;
+
+          justify-content:
+            center;
+
+          color:
+            white;
+
+          font-size:
+            12px;
+
+          font-weight:
+            800;
+
+          margin-bottom:
+            8px;
+
+        }
+
+
+        .iy-capability-title {
+
+          color:
+            #242932;
+
+          font-size:
+            11.5px;
+
+          font-weight:
+            750;
+
+        }
+
+
+        .iy-capability-description {
+
+          margin-top:
+            3px;
+
+          color:
+            #8a919a;
+
+          font-size:
+            9.5px;
+
+          line-height:
+            1.35;
+
+        }
+
+
+        /* ==================================================
+           PROMPT AREA
+           ================================================== */
+
+        .iy-prompt-area {
+
+          margin-top:
+            18px;
+
+        }
+
+
+        .iy-prompt {
+
+          width:
+            100%;
+
+          min-height:
+            45px;
+
+          display:
+            flex;
+
+          align-items:
+            center;
+
+          gap:
+            10px;
+
+          margin-bottom:
+            7px;
+
+          padding:
+            9px 11px;
+
+          background:
+            #f8fafb;
+
+          border:
+            1px solid #e8ecef;
+
+          border-radius:
+            12px;
+
+          cursor:
+            pointer;
+
+          text-align:
+            left;
+
+          transition:
+            background .15s ease,
+            transform .15s ease;
+
+        }
+
+
+        .iy-prompt:hover {
+
+          background:
+            white;
+
+          transform:
+            translateX(2px);
+
+        }
+
+
+        .iy-prompt-icon {
+
+          width:
+            27px;
+
+          height:
+            27px;
+
+          border-radius:
+            8px;
+
+          background:
+            white;
+
+          border:
+            1px solid #e4e8eb;
+
+          display:
+            flex;
+
+          align-items:
+            center;
+
+          justify-content:
+            center;
+
+          color:
+            var(--iy-primary);
+
+          font-size:
+            11px;
+
+          font-weight:
+            800;
+
+          flex-shrink:
+            0;
+
+        }
+
+
+        .iy-prompt-text {
+
+          flex:
+            1;
+
+          color:
+            #454b54;
+
+          font-size:
+            11.5px;
+
+          line-height:
+            1.35;
+
+        }
+
+
+        .iy-prompt-arrow {
+
+          color:
+            #a3a9b0;
+
+          font-size:
+            14px;
+
+        }
+
+
+        /* ==================================================
+           HOME FOOTER
+           ================================================== */
+
+        .iy-created {
+
+          text-align:
+            center;
+
+          padding:
+            15px 0 4px;
+
+          color:
+            #9aa0a8;
+
+          font-size:
+            9.5px;
+
+        }
+
+
+        .iy-created strong {
+
+          color:
+            #59616b;
+
+          font-weight:
+            750;
+
+        }
+
+
+        .iy-created-logo {
+
+          display:
+            inline-flex;
+
+          align-items:
+            center;
+
+          justify-content:
+            center;
+
+          width:
+            18px;
+
+          height:
+            18px;
+
+          margin-left:
+            4px;
+
+          border-radius:
+            6px;
+
+          color:
+            white;
+
+          font-size:
+            7px;
+
+          font-weight:
+            850;
+
+        }
+
+
+        /* ==================================================
+           CHAT
+           ================================================== */
+
+        .iy-chat {
+
+          flex:
+            1;
+
+          min-height:
+            0;
+
+          display:
+            flex;
+
+          flex-direction:
+            column;
+
+          overflow:
+            hidden;
+
+        }
+
+
+        .iy-messages {
+
+          flex:
+            1;
+
+          min-height:
+            0;
+
+          overflow-y:
+            auto;
+
+          padding:
+            15px 13px 8px;
+
+          display:
+            flex;
+
+          flex-direction:
+            column;
+
+          gap:
+            9px;
+
+          -webkit-overflow-scrolling:
+            touch;
+
+        }
+
+
+        .iy-message-row {
+
+          display:
+            flex;
+
+          flex-direction:
+            column;
+
+          width:
+            100%;
+
+        }
+
+
+        .iy-message-row.user {
+
+          align-items:
+            flex-end;
+
+        }
+
+
+        .iy-message-row.bot {
+
+          align-items:
+            flex-start;
+
+        }
+
+
+        .iy-message {
+
+          max-width:
+            88%;
+
+          padding:
+            10px 13px;
+
+          border-radius:
+            15px;
+
+          font-size:
+            12.5px;
+
+          line-height:
+            1.55;
+
+          overflow-wrap:
+            anywhere;
+
+          word-break:
+            break-word;
+
+        }
+
+
+        .iy-message.user {
+
+          color:
+            white;
+
+          border-bottom-right-radius:
+            4px;
+
+        }
+
+
+        .iy-message.bot {
+
+          color:
+            #252a31;
+
+          border-bottom-left-radius:
+            4px;
+
+        }
+
+
+        .iy-message strong {
+
+          font-weight:
+            800;
+
+        }
+
+
+        .iy-time {
+
+          padding:
+            3px 4px 0;
+
+          color:
+            #a2a7ae;
+
+          font-size:
+            9px;
+
+        }
+
+
+        /* ==================================================
+           FEEDBACK
+           ================================================== */
+
+        .iy-feedback {
+
+          display:
+            flex;
+
+          gap:
+            2px;
+
+          margin-top:
+            2px;
+
+        }
+
+
+        .iy-feedback-button {
+
+          border:
+            none;
+
+          background:
+            transparent;
+
+          cursor:
+            pointer;
+
+          font-size:
+            12px;
+
+          opacity:
+            .5;
+
+          padding:
+            4px;
+
+        }
+
+
+        /* ==================================================
+           CONTACT BUTTONS
+           ================================================== */
+
+        .iy-contact {
+
+          display:
+            flex;
+
+          flex-wrap:
+            wrap;
+
+          gap:
+            5px;
+
+          margin-top:
+            6px;
+
+        }
+
+
+        .iy-contact-link {
+
+          display:
+            inline-flex;
+
+          align-items:
+            center;
+
+          gap:
+            5px;
+
+          min-height:
+            31px;
+
+          padding:
+            6px 9px;
+
+          border:
+            1px solid #e1e5e8;
+
+          background:
+            white;
+
+          border-radius:
+            9px;
+
+          text-decoration:
+            none;
+
+          color:
+            #3d444d;
+
+          font-size:
+            10px;
+
+          font-weight:
+            650;
+
+        }
+
+
+        /* ==================================================
+           TYPING
+           ================================================== */
+
+        .iy-typing {
+
+          display:
+            flex;
+
+          align-items:
+            center;
+
+          gap:
+            7px;
+
+          color:
+            #8e959e;
+
+          font-size:
+            10.5px;
+
+          padding:
+            3px 5px;
+
+        }
+
+
+        .iy-dots {
+
+          display:
+            flex;
+
+          gap:
+            3px;
+
+        }
+
+
+        .iy-dot {
+
+          width:
+            5px;
+
+          height:
+            5px;
+
+          border-radius:
+            50%;
+
+          background:
+            #9299a2;
+
+          animation:
+            iy-dot
+            1.1s
+            infinite
+            ease-in-out;
+
+        }
+
+
+        .iy-dot:nth-child(2) {
+
+          animation-delay:
+            .15s;
+
+        }
+
+
+        .iy-dot:nth-child(3) {
+
+          animation-delay:
+            .3s;
+
+        }
+
+
+        @keyframes iy-dot {
+
+          0%,
+          60%,
+          100% {
+
+            opacity:
+              .35;
+
+            transform:
+              translateY(0);
+
+          }
+
+          30% {
+
+            opacity:
+              1;
+
+            transform:
+              translateY(-3px);
+
+          }
+
+        }
+
+
+        /* ==================================================
+           CHAT SUGGESTIONS
+           ================================================== */
+
+        .iy-suggestions {
+
+          display:
+            flex;
+
+          gap:
+            6px;
+
+          overflow-x:
+            auto;
+
+          padding:
+            7px 11px;
+
+          flex-shrink:
+            0;
+
+          scrollbar-width:
+            none;
+
+        }
+
+
+        .iy-suggestions::-webkit-scrollbar {
+
+          display:
+            none;
+
+        }
+
+
+        .iy-suggestion {
+
+          flex-shrink:
+            0;
+
+          border:
+            1px solid #e2e6e9;
+
+          background:
+            white;
+
+          border-radius:
+            20px;
+
+          padding:
+            7px 10px;
+
+          min-height:
+            31px;
+
+          cursor:
+            pointer;
+
+          color:
+            #535a63;
+
+          font-size:
+            10px;
+
+          font-weight:
+            650;
+
+        }
+
+
+        /* ==================================================
+           INPUT
+           ================================================== */
+
+        .iy-input-area {
+
+          display:
+            flex;
+
+          align-items:
+            center;
+
+          gap:
+            7px;
+
+          padding:
+            9px 10px;
+
+          border-top:
+            1px solid #eceff1;
+
+          background:
+            white;
+
+          flex-shrink:
+            0;
+
+        }
+
+
+        .iy-input {
+
+          flex:
+            1;
+
+          min-width:
+            0;
+
+          height:
+            43px;
+
+          border:
+            1px solid #dde2e6;
+
+          border-radius:
+            13px;
+
+          outline:
+            none;
+
+          background:
+            #f8fafb;
+
+          padding:
+            9px 12px;
+
+          font-family:
+            inherit;
+
+          font-size:
+            16px;
+
+          color:
+            #20242a;
+
+        }
+
+
+        .iy-input:focus {
+
+          background:
+            white;
+
+          border-color:
+            var(--iy-primary);
+
+          box-shadow:
+            0 0 0 3px
+            rgba(20,184,166,.08);
+
+        }
+
+
+        .iy-send {
+
+          width:
+            43px;
+
+          height:
+            43px;
+
+          min-width:
+            43px;
+
+          border:
+            none;
+
+          border-radius:
+            13px;
+
+          color:
+            white;
+
+          cursor:
+            pointer;
+
+          font-size:
+            16px;
+
+          display:
+            flex;
+
+          align-items:
+            center;
+
+          justify-content:
+            center;
+
+        }
+
+
+        .iy-send:disabled {
+
+          opacity:
+            .45;
+
+          cursor:
+            not-allowed;
+
+        }
+
+
+        /* ==================================================
+           CHAT FOOTER
+           ================================================== */
+
+        .iy-chat-footer {
+
+          text-align:
+            center;
+
+          color:
+            #a2a7ad;
+
+          font-size:
+            8.5px;
+
+          padding:
+            4px 0 7px;
+
+          background:
+            white;
+
+          flex-shrink:
+            0;
+
+        }
+
+
+        .iy-chat-footer strong {
+
+          color:
+            #656d76;
+
+        }
+
+
+        /* ==================================================
+           MOBILE
+           ================================================== */
+
+        @media (max-width: 640px) {
+
+          .iy-launcher {
+
+            right:
+              15px;
+
+            bottom:
+              15px;
+
+          }
+
+
+          .iy-launcher-label {
+
+            display:
+              none;
+
+          }
+
+
+          .iy-launcher-button {
+
+            width:
+              56px;
+
+            height:
+              56px;
+
+            border-radius:
+              18px;
+
+          }
+
+
+          .iy-window {
+
+            width:
+              calc(100vw - 22px);
+
+            height:
+              min(
+                680px,
+                calc(100vh - 44px)
+              );
+
+            max-width:
+              calc(100vw - 22px);
+
+            max-height:
+              calc(100vh - 44px);
+
+            border-radius:
+              20px;
+
+          }
+
+
+          .iy-window.fullscreen {
+
+            width:
+              100vw;
+
+            height:
+              100dvh;
+
+            max-width:
+              100vw;
+
+            max-height:
+              100dvh;
+
+            border-radius:
+              0;
+
+          }
+
+
+          .iy-home {
+
+            padding:
+              15px 13px;
+
+          }
+
+
+          .iy-welcome {
+
+            padding-bottom:
+              14px;
+
+          }
+
+
+          .iy-welcome-title {
+
+            font-size:
+              19px;
+
+          }
+
+
+          .iy-welcome-text {
+
+            font-size:
+              11.5px;
+
+          }
+
+
+          .iy-capability {
+
+            min-height:
+              79px;
+
+            padding:
+              10px;
+
+          }
+
+
+          .iy-capability-title {
+
+            font-size:
+              11px;
+
+          }
+
+
+          .iy-capability-description {
+
+            font-size:
+              9px;
+
+          }
+
+
+          .iy-message {
+
+            max-width:
+              91%;
+
+            font-size:
+              12.5px;
+
+          }
+
+        }
+
+
+        /* ==================================================
+           SMALL PHONES
+           ================================================== */
+
+        @media (max-width: 380px) {
+
+          .iy-window {
+
+            width:
+              calc(100vw - 14px);
+
+            max-width:
+              calc(100vw - 14px);
+
+            height:
+              calc(100vh - 28px);
+
+            max-height:
+              calc(100vh - 28px);
+
+            border-radius:
+              17px;
+
+          }
+
+
+          .iy-capabilities {
+
+            gap:
+              6px;
+
+          }
+
+
+          .iy-capability {
+
+            min-height:
+              75px;
+
+          }
+
+
+          .iy-brand-subtitle {
+
+            display:
+              none;
+
+          }
+
+
+          .iy-action {
+
+            width:
+              31px;
+
+            height:
+              31px;
+
+          }
+
+        }
+
+
+        /* ==================================================
+           LANDSCAPE
+           ================================================== */
+
+        @media (
+          max-width: 900px
+        ) and (
+          orientation: landscape
+        ) {
+
+          .iy-window {
+
+            width:
+              calc(100vw - 28px);
+
+            height:
+              calc(100vh - 28px);
+
+            max-height:
+              calc(100vh - 28px);
+
+          }
+
+
+          .iy-window.fullscreen {
+
+            width:
+              100vw;
+
+            height:
+              100dvh;
+
+          }
+
+        }
+
+
+        /* ==================================================
+           REDUCED MOTION
+           ================================================== */
+
+        @media (
+          prefers-reduced-motion: reduce
+        ) {
+
+          .iy-window,
+          .iy-launcher-button,
+          .iy-capability,
+          .iy-prompt {
+
+            animation:
+              none !important;
+
+            transition:
+              none !important;
+
+          }
+
+
+          .iy-dot {
+
+            animation:
+              none !important;
+
+          }
+
+        }
+
+      `}</style>
+
+
+      {/* =====================================================
+          FLOATING LAUNCHER
+          ===================================================== */}
+
+      <div className="iy-launcher">
+
         {!open && (
+
           <div
-            onClick={() => setOpen(true)}
-            style={{
-              background: "white", color: "#222", padding: "10px 16px", borderRadius: 20,
-              boxShadow: "0 4px 14px rgba(0,0,0,0.15)", fontSize: 13, fontWeight: 600, cursor: "pointer",
-              whiteSpace: "nowrap"
-            }}
+            className="iy-launcher-label"
+            onClick={openChat}
           >
-            👋 Try me — I'm IY Assistant
+
+            ✦ Ask Ibrar AI
+
           </div>
+
         )}
+
+
+        <button
+          className="iy-launcher-button"
+          onClick={() => {
+
+            if (open) {
+
+              closeChat();
+
+            } else {
+
+              openChat();
+
+            }
+
+          }}
+          style={{
+
+            background:
+              `linear-gradient(
+                135deg,
+                ${theme.primary},
+                ${theme.secondary}
+              )`,
+
+          }}
+          aria-label={
+            open
+              ? "Close IY AI"
+              : "Ask Ibrar AI"
+          }
+        >
+
+          <span className="iy-launcher-symbol">
+
+            {open ? "×" : "✦"}
+
+          </span>
+
+          <span className="iy-launcher-text">
+
+            {open ? "CLOSE" : "IY AI"}
+
+          </span>
+
+        </button>
+
       </div>
 
+
+      {/* =====================================================
+          CHAT WINDOW
+          ===================================================== */}
+
       {open && (
-        <div style={{
-          position: "fixed", bottom: 100, right: 24, width: 380, maxHeight: 600, background: "white",
-          borderRadius: 20, boxShadow: "0 10px 36px rgba(0,0,0,0.28)", display: "flex", flexDirection: "column",
-          overflow: "hidden", zIndex: 9999, fontSize: 14
-        }}>
-          <div style={{ background: `linear-gradient(135deg, ${theme.from}, ${theme.to})`, color: "white", padding: 20, position: "relative" }}>
-            <button
-              onClick={() => setGenz(!genz)}
-              style={{ position: "absolute", top: 16, right: 16, background: "rgba(255,255,255,0.15)", border: "none", borderRadius: 8, color: "white", width: 30, height: 30, cursor: "pointer" }}
-            >
-              🎨
-            </button>
-            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <div style={{ width: 38, height: 38, borderRadius: "50%", background: "rgba(255,255,255,0.18)", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800, fontSize: 14, border: "1.5px solid rgba(255,255,255,0.4)" }}>IY</div>
-              <div>
-                <h2 style={{ margin: 0, fontSize: 18 }}>Hi, I'm IY 👋</h2>
-                <p style={{ margin: "6px 0 0 0", fontSize: 12.5, opacity: 0.88 }}>Ibrar Yousafzai's AI Assistant</p>
+
+        <div
+          className={`iy-window ${
+            fullscreen
+              ? "fullscreen"
+              : ""
+          }`}
+          style={{
+
+            "--iy-primary":
+              theme.primary,
+
+            "--iy-secondary":
+              theme.secondary,
+
+          }}
+        >
+
+
+          {/* =================================================
+              HEADER
+              ================================================= */}
+
+          <header
+            className="iy-header"
+            style={{
+
+              background:
+                `linear-gradient(
+                  135deg,
+                  ${theme.dark},
+                  #102b4d
+                )`,
+
+            }}
+          >
+
+            <div className="iy-header-content">
+
+
+              <div className="iy-brand">
+
+                <div className="iy-logo">
+
+                  IY
+
+                </div>
+
+
+                <div className="iy-brand-info">
+
+                  <h2 className="iy-brand-title">
+
+                    IY AI ✦
+
+                  </h2>
+
+
+                  <p className="iy-brand-subtitle">
+
+                    Personal Portfolio Intelligence
+
+                  </p>
+
+
+                  <div className="iy-online">
+
+                    <span className="iy-online-dot" />
+
+                    Online · Ready to help
+
+                  </div>
+
+                </div>
+
               </div>
+
+
+              <div className="iy-actions">
+
+
+                {/* THEME */}
+
+                <button
+                  className="iy-action"
+                  onClick={() =>
+                    setGenz(
+                      (previous) =>
+                        !previous
+                    )
+                  }
+                  title="Change appearance"
+                  aria-label="Change appearance"
+                >
+
+                  ◐
+
+                </button>
+
+
+                {/* FULLSCREEN */}
+
+                <button
+                  className="iy-action"
+                  onClick={
+                    toggleFullscreen
+                  }
+                  title={
+                    fullscreen
+                      ? "Exit fullscreen"
+                      : "Fullscreen"
+                  }
+                  aria-label={
+                    fullscreen
+                      ? "Exit fullscreen"
+                      : "Fullscreen"
+                  }
+                >
+
+                  {fullscreen
+                    ? "↙"
+                    : "⛶"}
+
+                </button>
+
+
+                {/* CLOSE */}
+
+                <button
+                  className="iy-action"
+                  onClick={closeChat}
+                  title="Close assistant"
+                  aria-label="Close assistant"
+                >
+
+                  ×
+
+                </button>
+
+              </div>
+
             </div>
+
+          </header>
+
+
+          {/* =================================================
+              NAV
+              ================================================= */}
+
+          <div className="iy-nav">
+
+            <button
+              className="iy-nav-button"
+              onClick={() =>
+                setTab("home")
+              }
+              style={{
+
+                color:
+                  tab === "home"
+                    ? theme.accentDark
+                    : "#8a919a",
+
+                borderBottom:
+                  tab === "home"
+                    ? `2px solid ${theme.accent}`
+                    : "2px solid transparent",
+
+              }}
+            >
+
+              ✦ Discover
+
+            </button>
+
+
+            <button
+              className="iy-nav-button"
+              onClick={() =>
+                setTab("chat")
+              }
+              style={{
+
+                color:
+                  tab === "chat"
+                    ? theme.accentDark
+                    : "#8a919a",
+
+                borderBottom:
+                  tab === "chat"
+                    ? `2px solid ${theme.accent}`
+                    : "2px solid transparent",
+
+              }}
+            >
+
+              ◌ Conversation
+
+            </button>
+
           </div>
 
-          <div style={{ display: "flex", borderBottom: "1px solid #eee" }}>
-            {["home", "chat"].map(t => (
-              <button
-                key={t}
-                onClick={() => setTab(t)}
-                style={{
-                  flex: 1, padding: 10, textAlign: "center", cursor: "pointer", fontSize: 13, fontWeight: 600,
-                  color: tab === t ? theme.accentDark : "#888", background: "white", border: "none",
-                  borderBottom: tab === t ? `2px solid ${theme.accent}` : "none"
-                }}
-              >
-                {t === "home" ? "Home" : "Chat"}
-              </button>
-            ))}
-          </div>
+
+          {/* =================================================
+              HOME
+              ================================================= */}
 
           {tab === "home" && (
-            <div style={{ padding: 16, display: "flex", flexDirection: "column", gap: 10 }}>
-              <div style={{ fontSize: 13, color: "#555" }}>Ask me about Ibrar's skills, projects, or how to get in touch.</div>
-              {quickQuestions.map((item, i) => (
+
+            <main className="iy-home">
+
+
+              <section className="iy-welcome">
+
                 <div
-                  key={i}
-                  onClick={() => sendMessage(item.q)}
-                  style={{ background: "#f7f8fb", border: "1px solid #e5e7eb", borderRadius: 12, padding: "12px 14px", cursor: "pointer", fontSize: 13.5, color: "#222" }}
+                  className="iy-welcome-icon"
+                  style={{
+
+                    background:
+                      `linear-gradient(
+                        135deg,
+                        ${theme.primary},
+                        ${theme.secondary}
+                      )`,
+
+                  }}
                 >
-                  {item.icon} {item.q}
+
+                  IY
+
                 </div>
-              ))}
-            </div>
+
+
+                <h1 className="iy-welcome-title">
+
+                  Hi, I'm{" "}
+
+                  <span>
+                    IY AI
+                  </span>{" "}
+
+                  👋
+
+                </h1>
+
+
+                <p className="iy-welcome-text">
+
+                  Your AI guide to Ibrar
+                  Yousafzai's portfolio.
+                  Ask about projects,
+                  skills, experience,
+                  technologies or working
+                  together.
+
+                </p>
+
+              </section>
+
+
+              <div className="iy-section-label">
+
+                Explore
+
+              </div>
+
+
+              <div className="iy-capabilities">
+
+                {prompts.map(
+                  (item, index) => (
+
+                    <button
+                      key={index}
+                      className="iy-capability"
+                      onClick={() =>
+                        sendMessage(
+                          item.question
+                        )
+                      }
+                    >
+
+                      <div
+                        className="iy-capability-icon"
+                        style={{
+
+                          background:
+                            `linear-gradient(
+                              135deg,
+                              ${theme.primary},
+                              ${theme.secondary}
+                            )`,
+
+                        }}
+                      >
+
+                        {item.icon}
+
+                      </div>
+
+
+                      <div className="iy-capability-title">
+
+                        {item.title}
+
+                      </div>
+
+
+                      <div className="iy-capability-description">
+
+                        {item.description}
+
+                      </div>
+
+                    </button>
+
+                  )
+                )}
+
+              </div>
+
+
+              <div className="iy-prompt-area">
+
+                <div className="iy-section-label">
+
+                  Try asking
+
+                </div>
+
+
+                {suggestedQuestions.map(
+                  (question, index) => (
+
+                    <button
+                      key={index}
+                      className="iy-prompt"
+                      onClick={() =>
+                        sendMessage(
+                          question
+                        )
+                      }
+                    >
+
+                      <span className="iy-prompt-icon">
+
+                        {index === 0
+                          ? "?"
+                          : index === 1
+                          ? "AI"
+                          : index === 2
+                          ? "⌘"
+                          : "↗"}
+
+                      </span>
+
+
+                      <span className="iy-prompt-text">
+
+                        {question}
+
+                      </span>
+
+
+                      <span className="iy-prompt-arrow">
+
+                        →
+
+                      </span>
+
+                    </button>
+
+                  )
+                )}
+
+              </div>
+
+
+              <div className="iy-created">
+
+                Created by{" "}
+
+                <strong>
+                  Ibrar Yousafzai
+                </strong>
+
+
+                <span
+                  className="iy-created-logo"
+                  style={{
+
+                    background:
+                      `linear-gradient(
+                        135deg,
+                        ${theme.primary},
+                        ${theme.secondary}
+                      )`,
+
+                  }}
+                >
+
+                  IY
+
+                </span>
+
+              </div>
+
+            </main>
+
           )}
+
+
+          {/* =================================================
+              CHAT
+              ================================================= */}
 
           {tab === "chat" && (
-            <div style={{ display: "flex", flexDirection: "column", height: 420 }}>
-              <div ref={scrollRef} style={{ flex: 1, overflowY: "auto", padding: 14, display: "flex", flexDirection: "column", gap: 4 }}>
-                {messages.map((m, i) => (
-                  <div key={i} style={{ display: "flex", flexDirection: "column", maxWidth: "85%", alignSelf: m.role === "user" ? "flex-end" : "flex-start", alignItems: m.role === "user" ? "flex-end" : "flex-start" }}>
+
+            <section className="iy-chat">
+
+
+              {/* =============================================
+                  MESSAGES
+                  ============================================= */}
+
+              <div
+                className="iy-messages"
+                ref={scrollRef}
+              >
+
+                {messages.length === 0 && (
+
+                  <div className="iy-welcome">
+
                     <div
+                      className="iy-welcome-icon"
                       style={{
-                        padding: "10px 14px", borderRadius: 14, fontSize: 13.5, lineHeight: 1.45,
-                        background: m.role === "user" ? theme.userBg : theme.botBg,
-                        color: m.role === "user" ? "white" : "#222",
-                        borderBottomRightRadius: m.role === "user" ? 4 : 14,
-                        borderBottomLeftRadius: m.role === "bot" ? 4 : 14
+
+                        background:
+                          `linear-gradient(
+                            135deg,
+                            ${theme.primary},
+                            ${theme.secondary}
+                          )`,
+
                       }}
-                      dangerouslySetInnerHTML={m.role === "bot" ? renderBold(m.text) : undefined}
                     >
-                      {m.role === "user" ? m.text : undefined}
+
+                      IY
+
                     </div>
-                    {m.time && <div style={{ fontSize: 10.5, color: "#aaa", marginTop: 3, padding: "0 4px" }}>{m.time}</div>}
-                    {m.role === "bot" && m.text && (
-                      <div style={{ display: "flex", gap: 6, marginTop: 4, padding: "0 4px" }}>
-                        <button onClick={() => sendFeedback(i, "up")} style={{ border: "none", background: "none", cursor: "pointer", fontSize: 13, opacity: m.feedback === "up" ? 1 : 0.5 }}>👍</button>
-                        <button onClick={() => sendFeedback(i, "down")} style={{ border: "none", background: "none", cursor: "pointer", fontSize: 13, opacity: m.feedback === "down" ? 1 : 0.5 }}>👎</button>
-                      </div>
-                    )}
-                    {m.showContact && (
-                      <div style={{ display: "flex", gap: 8, marginTop: 8, flexWrap: "wrap" }}>
-                        <a href="https://pk.linkedin.com/in/ibrar-yousafzai" target="_blank" rel="noreferrer" style={{ display: "flex", alignItems: "center", gap: 6, background: "white", border: "1px solid #ddd", borderRadius: 10, padding: "7px 11px", fontSize: 12.5, textDecoration: "none", color: "#222" }}>🔗 LinkedIn</a>
-                        <a href="https://github.com/ibrar-yousafzai" target="_blank" rel="noreferrer" style={{ display: "flex", alignItems: "center", gap: 6, background: "white", border: "1px solid #ddd", borderRadius: 10, padding: "7px 11px", fontSize: 12.5, textDecoration: "none", color: "#222" }}>💻 GitHub</a>
-                        <a href={`mailto:${CONTACT_EMAIL}`} style={{ display: "flex", alignItems: "center", gap: 6, background: "white", border: "1px solid #ddd", borderRadius: 10, padding: "7px 11px", fontSize: 12.5, textDecoration: "none", color: "#222" }}>✉️ Email</a>
-                      </div>
-                    )}
+
+
+                    <h1 className="iy-welcome-title">
+
+                      Ask{" "}
+
+                      <span>
+                        IY AI
+                      </span>
+
+                    </h1>
+
+
+                    <p className="iy-welcome-text">
+
+                      Ask me anything about
+                      Ibrar's portfolio.
+
+                    </p>
+
                   </div>
-                ))}
-                {typing && <div style={{ fontSize: 12, color: "#999" }}>IY is typing...</div>}
+
+                )}
+
+
+                {messages.map(
+                  (message, index) => (
+
+                    <div
+                      key={index}
+                      className={`iy-message-row ${message.role}`}
+                    >
+
+
+                      <div
+                        className={`iy-message ${message.role}`}
+                        style={{
+
+                          background:
+                            message.role ===
+                            "user"
+
+                              ? theme.dark
+
+                              : theme.bot,
+
+                        }}
+                      >
+
+                        {message.role === "bot"
+                          ? renderBotText(message.text)
+                          : message.text}
+
+                      </div>
+
+
+                      {message.time && (
+
+                        <div className="iy-time">
+
+                          {message.time}
+
+                        </div>
+
+                      )}
+
+
+                      {message.role ===
+                        "bot" &&
+                        message.text && (
+
+                          <div className="iy-feedback">
+
+                            <button
+                              className="iy-feedback-button"
+                              onClick={() =>
+                                sendFeedback(
+                                  index,
+                                  "up"
+                                )
+                              }
+                              style={{
+                                opacity:
+                                  message.feedback ===
+                                  "up"
+                                    ? 1
+                                    : .5,
+                              }}
+                            >
+
+                              👍
+
+                            </button>
+
+
+                            <button
+                              className="iy-feedback-button"
+                              onClick={() =>
+                                sendFeedback(
+                                  index,
+                                  "down"
+                                )
+                              }
+                              style={{
+                                opacity:
+                                  message.feedback ===
+                                  "down"
+                                    ? 1
+                                    : .5,
+                              }}
+                            >
+
+                              👎
+
+                            </button>
+
+                          </div>
+
+                        )}
+
+
+                      {message.showContact && (
+
+                        <div className="iy-contact">
+
+                          <a
+                            href={LINKEDIN_URL}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="iy-contact-link"
+                          >
+                            ↗ LinkedIn
+                          </a>
+
+                          <a
+                            href={GITHUB_URL}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="iy-contact-link"
+                          >
+                            ◇ GitHub
+                          </a>
+
+                          <a
+                            href={`mailto:${CONTACT_EMAIL}`}
+                            className="iy-contact-link"
+                          >
+                            @ Email
+                          </a>
+
+                          <a
+                            href={CONTACT_FORM_URL}
+                            className="iy-contact-link"
+                          >
+                            ✎ Contact Form
+                          </a>
+
+                        </div>
+
+                      )}
+
+
+                    </div>
+
+                  )
+                )}
+
+
+                {typing && (
+
+                  <div className="iy-typing">
+
+                    <div className="iy-dots">
+
+                      <span className="iy-dot" />
+
+                      <span className="iy-dot" />
+
+                      <span className="iy-dot" />
+
+                    </div>
+
+                    IY AI is thinking...
+
+                  </div>
+
+                )}
+
               </div>
 
-              <div style={{ padding: "8px 14px", display: "flex", gap: 6, overflowX: "auto" }}>
-                {["Projects", "Tech stack", "Contact"].map((label, i) => (
-                  <div
-                    key={i}
-                    onClick={() => sendMessage(quickQuestions[i === 0 ? 0 : i === 1 ? 1 : 3].q)}
-                    style={{ whiteSpace: "nowrap", background: "white", border: "1px solid #e2e4ea", borderRadius: 20, padding: "7px 12px", fontSize: 12, cursor: "pointer" }}
-                  >
-                    {label}
-                  </div>
-                ))}
+
+              {/* =============================================
+                  SUGGESTIONS
+                  ============================================= */}
+
+              <div className="iy-suggestions">
+
+                {suggestedQuestions.map(
+                  (question, index) => (
+
+                    <button
+                      key={index}
+                      className="iy-suggestion"
+                      onClick={() =>
+                        sendMessage(
+                          question
+                        )
+                      }
+                      disabled={typing}
+                    >
+
+                      {question}
+
+                    </button>
+
+                  )
+                )}
+
               </div>
 
-              <div style={{ display: "flex", borderTop: "1px solid #eee", padding: 10, gap: 6 }}>
+
+              {/* =============================================
+                  INPUT
+                  ============================================= */}
+
+              <div className="iy-input-area">
+
                 <input
+                  className="iy-input"
                   value={input}
-                  onChange={e => setInput(e.target.value)}
-                  onKeyPress={e => e.key === "Enter" && sendMessage(input)}
-                  placeholder="Type a message..."
-                  style={{ flex: 1, border: "none", outline: "none", fontSize: 13.5, padding: 8 }}
+                  disabled={typing}
+                  placeholder="Ask IY anything..."
+                  autoComplete="off"
+                  autoCorrect="on"
+                  enterKeyHint="send"
+                  onChange={(event) =>
+                    setInput(
+                      event.target.value
+                    )
+                  }
+                  onKeyDown={(event) => {
+
+                    if (
+                      event.key ===
+                        "Enter" &&
+                      !event.shiftKey
+                    ) {
+
+                      event.preventDefault();
+
+                      sendMessage(input);
+
+                    }
+
+                  }}
                 />
+
+
                 <button
-                  onClick={() => sendMessage(input)}
-                  style={{ background: theme.accent, color: "white", border: "none", borderRadius: 10, padding: "8px 14px", cursor: "pointer", fontWeight: 600 }}
+                  className="iy-send"
+                  disabled={
+                    typing ||
+                    !input.trim()
+                  }
+                  onClick={() =>
+                    sendMessage(input)
+                  }
+                  style={{
+
+                    background:
+                      `linear-gradient(
+                        135deg,
+                        ${theme.primary},
+                        ${theme.secondary}
+                      )`,
+
+                  }}
+                  aria-label="Send message"
                 >
-                  ➤
+
+                  ↑
+
                 </button>
+
               </div>
-            </div>
+
+
+              {/* =============================================
+                  FOOTER
+                  ============================================= */}
+
+              <div className="iy-chat-footer">
+
+                Created by{" "}
+
+                <strong>
+                  Ibrar Yousafzai
+                </strong>
+
+                {" · "}
+
+                <strong>
+                  IY
+                </strong>
+
+              </div>
+
+
+            </section>
+
           )}
+
         </div>
+
       )}
+
     </div>
+
   );
+
 }
