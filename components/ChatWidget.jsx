@@ -970,32 +970,31 @@ if (isContactQuestion) {
 
         /* ==================================================
            BASE
-           ================================================== */
-
-        .iy-root {
+          /* =======================================================
+             BODY LOCK WHILE CHAT IS OPEN
+             ======================================================= */
 
           font-family:
             Inter,
-            ui-sans-serif,
+            const previousOverflow =
+              document.body.style.overflow;
             system-ui,
-            -apple-system,
-            BlinkMacSystemFont,
+            if (open) {
             "Segoe UI",
-            sans-serif;
+              document.body.style.overflow =
+                "hidden";
 
-          -webkit-font-smoothing:
-            antialiased;
 
           text-rendering:
             optimizeLegibility;
 
         }
 
-
+                previousOverflow;
         .iy-root *,
         .iy-root *::before,
         .iy-root *::after {
-
+          }, [open]);
           box-sizing:
             border-box;
 
@@ -1221,6 +1220,9 @@ if (isContactQuestion) {
           animation:
             iy-window-in
             .25s ease-out;
+
+          overscroll-behavior:
+            contain;
 
         }
 
@@ -2202,6 +2204,12 @@ if (isContactQuestion) {
 
           -webkit-overflow-scrolling:
             touch;
+
+          overscroll-behavior-y:
+            contain;
+
+          touch-action:
+            pan-y;
 
         }
 
