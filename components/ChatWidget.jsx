@@ -240,6 +240,15 @@ SESSION
     }
   }, []);
 
+  useEffect(() => {
+    function handleOpenChat() {
+      openChat();
+    }
+
+    window.addEventListener("open-chat", handleOpenChat);
+    return () => window.removeEventListener("open-chat", handleOpenChat);
+  }, []);
+
 
 /*
 =========================================================
