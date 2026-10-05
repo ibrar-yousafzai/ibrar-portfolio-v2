@@ -14,6 +14,7 @@ IY AI — PERSONAL PORTFOLIO ASSISTANT
 */
 
 const API_URL =
+  process.env.NEXT_PUBLIC_CHATBOT_URL ||
   "https://iy-portfolio-chatbot.onrender.com/chat";
 
 const FEEDBACK_URL =
@@ -202,6 +203,9 @@ export default function ChatWidget() {
     useRef(null);
 
   const inputRef =
+    useRef(null);
+
+  const wakeTimerRef =
     useRef(null);
 
 
@@ -550,6 +554,31 @@ NORMAL RAG REQUEST
 
     let fullText = "";
 
+    wakeTimerRef.current =
+      window.setTimeout(() => {
+        if (fullText) return;
+
+        setMessages(
+          (previous) => {
+            const copy =
+              [...previous];
+
+            if (
+              copy[botIndex] &&
+              !copy[botIndex].text
+            ) {
+              copy[botIndex] = {
+                ...copy[botIndex],
+                text:
+                  "Waking up the assistant, this can take up to a minute on the first message…",
+              };
+            }
+
+            return copy;
+          }
+        );
+      }, 4000);
+
     try {
       const response =
         await fetch(
@@ -733,8 +762,12 @@ NORMAL RAG REQUEST
       );
 
       fullText =
-        "I’m having trouble connecting to my AI service right now. Please try again in a moment.";
+        "I’m sorry, I’m having trouble connecting to the assistant right now. Please try again in a moment.";
     }
+
+    window.clearTimeout(
+      wakeTimerRef.current
+    );
 
 
 /*
