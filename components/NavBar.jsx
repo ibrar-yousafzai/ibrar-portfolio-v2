@@ -26,6 +26,12 @@ export default function NavBar({ name }) {
             </li>
           ))}
         </ul>
+        <a
+          href="#contact"
+          className="shrink-0 rounded-md bg-accent px-4 py-2 text-xs font-medium text-[#04140f] transition hover:opacity-90 md:text-sm"
+        >
+          Book a free call
+        </a>
       </nav>
     </header>
   );

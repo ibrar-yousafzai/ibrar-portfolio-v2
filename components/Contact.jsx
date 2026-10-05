@@ -30,7 +30,7 @@ export default function Contact({ settings }) {
   ].filter((l) => l.href);
 
   return (
-    <section id="contact" className="border-b border-border">
+    <section id="contact" className="scroll-mt-24 border-b border-border">
       <div className="mx-auto max-w-6xl px-6 py-20">
         <h2 className="text-3xl font-semibold tracking-tight md:text-4xl">
           Let&apos;s build something data-driven and useful.
