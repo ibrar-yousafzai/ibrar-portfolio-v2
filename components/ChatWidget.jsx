@@ -1,11 +1,11 @@
 "use client";
 
 import {
-  Fragment,
   useEffect,
   useRef,
   useState,
 } from "react";
+import ReactMarkdown from "react-markdown";
 
 /*
 =========================================================
@@ -52,71 +52,23 @@ function renderBotText(text) {
     .replace(/\\n/g, "\n")
     .trim();
 
-  const lines = cleanText.split("\n");
-
-  return lines.map((line, lineIndex) => {
-    const isBullet =
-      /^\s*[-*•]\s+/.test(line);
-
-    const content = isBullet
-      ? line.replace(/^\s*[-*•]\s+/, "")
-      : line;
-
-    const parts =
-      content.split(/(\*\*.*?\*\*)/g);
-
-    return (
-      <Fragment key={lineIndex}>
-        <span
-          className={
-            isBullet
-              ? "iy-bullet-line"
-              : "iy-text-line"
-          }
-        >
-          {isBullet && (
-            <span className="iy-bullet">
-              •
-            </span>
-          )}
-
-          <span>
-            {parts.map(
-              (part, partIndex) => {
-                const isBold =
-                  part.startsWith("**") &&
-                  part.endsWith("**") &&
-                  part.length >= 4;
-
-                if (isBold) {
-                  return (
-                    <strong
-                      key={partIndex}
-                    >
-                      {part.slice(2, -2)}
-                    </strong>
-                  );
-                }
-
-                return (
-                  <Fragment
-                    key={partIndex}
-                  >
-                    {part}
-                  </Fragment>
-                );
-              }
-            )}
-          </span>
-        </span>
-
-        {lineIndex <
-          lines.length - 1 && (
-          <br />
-        )}
-      </Fragment>
-    );
-  });
+  return (
+    <ReactMarkdown
+      components={{
+        p: ({ children }) => <p className="iy-markdown-paragraph">{children}</p>,
+        strong: ({ children }) => <strong className="iy-markdown-strong">{children}</strong>,
+        ul: ({ children }) => <ul className="iy-markdown-list">{children}</ul>,
+        ol: ({ children }) => <ol className="iy-markdown-list">{children}</ol>,
+        a: ({ children, href }) => (
+          <a className="iy-markdown-link" href={href} target="_blank" rel="noreferrer">
+            {children}
+          </a>
+        ),
+      }}
+    >
+      {cleanText}
+    </ReactMarkdown>
+  );
 }
 
 
@@ -947,29 +899,25 @@ RENDER
         }}
       >
 
-        {!open && (
-          <div className="iy-launcher">
+        <div className="iy-launcher">
+          {!open && (
             <div className="iy-launcher-label">
               Chat with Ibrar
             </div>
+          )}
 
-            <button
-              type="button"
-              className="iy-launcher-button"
-              onClick={openChat}
-              aria-label="Open IY AI assistant"
-              title="Chat with IY AI"
-            >
-              <span className="iy-launcher-logo">
-                IY
-              </span>
-
-              <span className="iy-launcher-text">
-                AI
-              </span>
-            </button>
-          </div>
-        )}
+          <button
+            type="button"
+            className="iy-launcher-button"
+            onClick={open ? closeChat : openChat}
+            aria-label={open ? "Close IY AI assistant" : "Open IY AI assistant"}
+            title={open ? "Close chat" : "Chat with IY AI"}
+          >
+            <span className="iy-launcher-logo">
+              {open ? "×" : "IY AI"}
+            </span>
+          </button>
+        </div>
 
 
         {open && (
@@ -3060,7 +3008,52 @@ RENDER
             850;
 
           color:
-            #20262d;
+            #fff;
+        }
+
+
+        .iy-markdown-paragraph {
+          margin:
+            0 0 7px;
+        }
+
+
+        .iy-markdown-paragraph:last-child {
+          margin-bottom:
+            0;
+        }
+
+
+        .iy-markdown-strong {
+          color:
+            #fff;
+
+          font-weight:
+            850;
+        }
+
+
+        .iy-markdown-list {
+          margin:
+            5px 0 7px;
+
+          padding-left:
+            18px;
+        }
+
+
+        .iy-markdown-list li {
+          margin:
+            2px 0;
+        }
+
+
+        .iy-markdown-link {
+          color:
+            #0f766e;
+
+          text-decoration:
+            underline;
         }
 
 
