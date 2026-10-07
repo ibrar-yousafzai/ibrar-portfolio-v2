@@ -182,7 +182,7 @@ export default function ChatWidget() {
 
   return (
     <div className="iy-root" style={{ "--iy-primary": theme.primary, "--iy-secondary": theme.secondary, "--iy-accent": theme.accent, "--iy-dark": theme.dark, "--iy-soft": theme.soft, "--iy-bot": theme.bot, "--iy-border": theme.border }}>
-      <div className="iy-launcher">
+      <div className={`iy-launcher ${open ? "iy-launcher-hidden" : ""}`}>
         {!open && !hasSeen && <span className="iy-launcher-label">Chat with Ibrar</span>}
         <button type="button" className="iy-launcher-button" onClick={open ? () => setOpen(false) : openChat} aria-label={open ? "Close IY AI assistant" : "Open IY AI assistant"} title={open ? "Close chat" : "Chat with IY AI"}>
           {open ? "×" : <><span className="iy-launcher-logo">IY AI</span>{!hasSeen && <span className="iy-launcher-dot" aria-label="New chat" />}</>}
