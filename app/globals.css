@@ -78,26 +78,31 @@ select:focus-visible {
   outline-offset: 2px;
 }
 
-.chat-messages,
-.chat-panel textarea {
+.chat-scroll,
+.chat-input {
   scrollbar-width: thin;
-  scrollbar-color: color-mix(in srgb, var(--accent) 45%, transparent) transparent;
+  scrollbar-color: #2a3350 transparent;
 }
 
-.chat-messages::-webkit-scrollbar,
-.chat-panel textarea::-webkit-scrollbar {
+.chat-scroll::-webkit-scrollbar,
+.chat-input::-webkit-scrollbar {
   width: 6px;
 }
 
-.chat-messages::-webkit-scrollbar-track,
-.chat-panel textarea::-webkit-scrollbar-track {
+.chat-scroll::-webkit-scrollbar-track,
+.chat-input::-webkit-scrollbar-track {
   background: transparent;
 }
 
-.chat-messages::-webkit-scrollbar-thumb,
-.chat-panel textarea::-webkit-scrollbar-thumb {
+.chat-scroll::-webkit-scrollbar-thumb,
+.chat-input::-webkit-scrollbar-thumb {
   border-radius: 999px;
-  background: color-mix(in srgb, var(--accent) 45%, transparent);
+  background: #2a3350;
+}
+
+.chat-scroll::-webkit-scrollbar-button,
+.chat-input::-webkit-scrollbar-button {
+  display: none;
 }
 
 .chat-markdown strong {

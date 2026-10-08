@@ -1,14 +1,15 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 
 const API_URL = "https://iy-portfolio-chatbot.onrender.com/chat";
 
 const suggestions = [
-  "Tell me about Ibrar",
-  "What AI projects has he built?",
-  "What technologies does he use?",
-  "How can I contact him?",
+  "What can a RAG chatbot do for my business?",
+  "How much does a chatbot project cost?",
+  "Can I see a demo?",
+  "How do I book a call?",
 ];
 
 function MessageText({ text }) {
@@ -162,14 +163,14 @@ export default function ChatWidget() {
                 Discover
               </button>
               <button type="button" role="tab" aria-selected={activeTab === "conversation"} onClick={() => setActiveTab("conversation")} className={`rounded-md px-3 py-1.5 text-xs font-medium transition ${activeTab === "conversation" ? "bg-panel-2 text-text" : "text-text-muted hover:text-text"}`}>
-                Conversation <span className="ml-1 rounded-full bg-accent/20 px-1.5 py-0.5 text-[10px] text-accent">1</span>
+                Conversation
               </button>
             </div>
             <button type="button" onClick={startNewChat} className="text-xs text-text-muted transition hover:text-accent">+ New chat</button>
           </div>
 
           {activeTab === "discover" ? (
-            <div className="min-h-0 flex-1 overflow-y-auto px-4 py-5 text-sm">
+            <div className="chat-scroll min-h-0 flex-1 overflow-y-auto px-4 py-5 text-sm">
               <p className="font-display text-lg font-semibold text-text">Hi there 👋</p>
               <p className="mt-1 text-text-muted">Ask about Ibrar&apos;s projects, skills, or experience.</p>
               <div className="mt-5 grid gap-2">
@@ -179,7 +180,7 @@ export default function ChatWidget() {
               </div>
             </div>
           ) : (
-            <div ref={messagesRef} className="chat-messages min-h-0 flex-1 space-y-3 overflow-y-auto px-4 py-5 text-sm">
+            <div ref={messagesRef} className="chat-scroll min-h-0 flex-1 space-y-3 overflow-y-auto px-4 py-5 text-sm">
               {messages.length === 0 ? (
                 <div className="py-8 text-center">
                   <p className="font-display text-lg font-semibold">Hi there 👋</p>
@@ -196,15 +197,17 @@ export default function ChatWidget() {
           )}
 
           <form onSubmit={handleSubmit} className="flex shrink-0 gap-2 border-t border-border p-3">
-            <textarea ref={textareaRef} value={input} onChange={handleInput} onKeyDown={handleKeyDown} rows={1} placeholder="Ask a question..." className="min-h-[40px] max-h-28 min-w-0 flex-1 resize-none overflow-y-auto rounded-md border border-border bg-panel-2 px-3 py-2 text-sm leading-6 outline-none focus:border-accent" aria-label="Chat message" />
-            <button type="submit" disabled={typing || !input.trim()} className="self-end rounded-md bg-accent px-3 py-2 text-sm font-medium text-[#04140f] disabled:opacity-50" aria-label="Send message">Send</button>
+            <textarea ref={textareaRef} value={input} onChange={handleInput} onKeyDown={handleKeyDown} rows={1} placeholder="Ask a question..." className="chat-input min-h-[40px] max-h-28 min-w-0 flex-1 resize-none overflow-y-auto rounded-md border border-border bg-panel-2 px-3 py-2 text-sm leading-6 outline-none focus:border-accent" aria-label="Chat message" />
+            <button type="submit" disabled={typing || !input.trim()} className="self-end rounded-md bg-accent px-3 py-2 text-sm font-medium text-[#04140f] transition hover:bg-accent-2 disabled:cursor-not-allowed disabled:opacity-40" aria-label="Send message">Send</button>
           </form>
-          <p className="shrink-0 border-t border-border px-3 py-1.5 text-center text-[10px] text-text-muted">AI can make mistakes — verify important details</p>
+          <p className="shrink-0 border-t border-border px-3 py-1.5 text-center text-[10px] text-text-muted">
+            AI can make mistakes — verify important details. <Link href="/#contact" className="text-accent hover:underline">Contact Ibrar</Link>
+          </p>
         </section>
       ) : null}
 
-      <button type="button" onClick={() => setOpen((current) => !current)} className="rounded-full bg-accent px-4 py-3 text-sm font-semibold text-[#04140f] shadow-lg transition hover:scale-105" aria-label="Open IY AI chat">
-        {open ? "Close" : "Chat with IY AI"}
+      <button type="button" onClick={() => setOpen((current) => !current)} className="flex h-12 w-12 items-center justify-center rounded-full bg-accent text-xl font-semibold text-[#04140f] shadow-lg transition hover:scale-105" aria-label={open ? "Minimize IY AI chat" : "Open IY AI chat"}>
+        <span aria-hidden="true">💬</span>
       </button>
     </div>
   );
