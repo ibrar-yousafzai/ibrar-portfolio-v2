@@ -1,194 +1,211 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
-import ChatPanel from "./chat/ChatPanel";
-import { CONTACT_EMAIL, CONTACT_FORM_URL, FEEDBACK_URL, GITHUB_URL, LINKEDIN_URL, API_URL, ERROR_MESSAGE, WAKE_MESSAGE } from "./chat/constants";
+import { useEffect, useRef, useState } from "react";
 
-function getSessionId() {
-  try {
-    let id = sessionStorage.getItem("iy_ai_session");
-    if (!id) {
-      id = globalThis.crypto?.randomUUID?.() || `iy-${Date.now()}`;
-      sessionStorage.setItem("iy_ai_session", id);
-    }
-    return id;
-  } catch {
-    return `iy-${Date.now()}`;
-  }
-}
+const API_URL = "https://iy-portfolio-chatbot.onrender.com/chat";
 
-function detectsContactIntent(text) {
-  const value = String(text || "").toLowerCase().trim();
-  return ["how can i contact", "how do i contact", "contact him", "contact ibrar", "reach him", "reach ibrar", "reach out", "get in touch", "how can i reach", "how do i reach", "connect with him", "connect with ibrar", "talk to him", "hire him", "hire ibrar", "hire", "freelance", "freelancing", "work with him", "work with ibrar", "linkedin", "github", "email", "contact"].some((phrase) => value.includes(phrase));
+const suggestions = [
+  "Tell me about Ibrar",
+  "What AI projects has he built?",
+  "What technologies does he use?",
+  "How can I contact him?",
+];
+
+function MessageText({ text }) {
+  return (
+    <div className="chat-markdown whitespace-pre-wrap break-words">
+      {text.split(/(\*\*[^*]+\*\*)/g).map((part, index) => {
+        const isBold = part.startsWith("**") && part.endsWith("**");
+        return isBold ? <strong key={index}>{part.slice(2, -2)}</strong> : part;
+      })}
+    </div>
+  );
 }
 
 export default function ChatWidget() {
   const [open, setOpen] = useState(false);
-  const [fullscreen, setFullscreen] = useState(false);
-  const [tab, setTab] = useState("home");
-  const [messages, setMessages] = useState([]);
+  const [activeTab, setActiveTab] = useState("conversation");
   const [input, setInput] = useState("");
+  const [messages, setMessages] = useState([]);
   const [typing, setTyping] = useState(false);
-  const [genz, setGenz] = useState(false);
-  const [sessionId, setSessionId] = useState("");
-  const [hasSeen, setHasSeen] = useState(true);
-  const [unavailable, setUnavailable] = useState(false);
-  const [demo, setDemo] = useState(null);
-  const lastQuestionRef = useRef("");
-  const inputRef = useRef(null);
-  const scrollRef = useRef(null);
-  const wakeTimerRef = useRef(null);
-  const abortRef = useRef(null);
+  const messagesRef = useRef(null);
+  const messagesEndRef = useRef(null);
+  const textareaRef = useRef(null);
 
   useEffect(() => {
-    setSessionId(getSessionId());
-    try { setHasSeen(localStorage.getItem("iy_ai_seen") !== "false"); } catch {}
-  }, []);
-
-  const openChat = useCallback(() => {
-    setOpen(true);
-    setFullscreen(false);
-    setHasSeen(true);
-    try { localStorage.setItem("iy_ai_seen", "true"); } catch {}
-    window.setTimeout(() => inputRef.current?.focus(), 120);
-  }, []);
-
-  useEffect(() => {
-    if (!open) return undefined;
-    const oldOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => { document.body.style.overflow = oldOverflow; };
+    if (open && window.matchMedia("(max-width: 639px)").matches) {
+      document.body.classList.add("chat-open");
+      return () => document.body.classList.remove("chat-open");
+    }
+    document.body.classList.remove("chat-open");
   }, [open]);
 
-  useEffect(() => () => {
-    window.clearTimeout(wakeTimerRef.current);
-    abortRef.current?.abort();
-  }, []);
-
   useEffect(() => {
-    if (scrollRef.current) {
-      requestAnimationFrame(() => scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" }));
-    }
-  }, [messages, typing]);
+    if (!open || activeTab !== "conversation") return;
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+  }, [messages, typing, open, activeTab]);
 
-  const updateMessage = (index, patch) => {
-    setMessages((current) => current.map((message, i) => i === index ? { ...message, ...patch } : message));
-  };
+  function resizeTextarea() {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+    textarea.style.height = "auto";
+    textarea.style.height = `${Math.min(textarea.scrollHeight, 112)}px`;
+  }
 
-  const sendMessage = useCallback(async (value) => {
-    const messageText = String(value || "").trim();
-    if (!messageText || typing) return;
-    lastQuestionRef.current = messageText;
-    setUnavailable(false);
-    setTab("chat");
+  function startNewChat() {
+    setMessages([]);
     setInput("");
-    const time = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-    const botIndex = messages.length + 1;
-    setMessages((current) => [...current, { role: "user", text: messageText, time }, { role: "bot", text: "", time: "", feedback: null, showContact: false }]);
+    setActiveTab("conversation");
+    requestAnimationFrame(resizeTextarea);
+  }
+
+  async function sendMessage(value) {
+    const message = value.trim();
+    if (!message || typing) return;
+
+    setInput("");
+    requestAnimationFrame(resizeTextarea);
+    setOpen(true);
+    setActiveTab("conversation");
+    setMessages((current) => [...current, { role: "user", text: message }, { role: "bot", text: "" }]);
     setTyping(true);
 
-    if (detectsContactIntent(messageText)) {
-      window.setTimeout(() => {
-        updateMessage(botIndex, { text: "Let's connect. 👋\n\nChoose an option below to reach Ibrar.", time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }), showContact: true });
-        setTyping(false);
-      }, 350);
-      return;
-    }
-
-    let fullText = "";
-    wakeTimerRef.current = window.setTimeout(() => {
-      if (!fullText) updateMessage(botIndex, { text: WAKE_MESSAGE });
-    }, 4000);
     try {
-      abortRef.current = new AbortController();
       const response = await fetch(API_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: messageText, session_id: sessionId }),
-        signal: abortRef.current.signal,
+        body: JSON.stringify({ message }),
       });
-      if (!response.ok || !response.body) throw new Error(`Server error: ${response.status}`);
+      if (!response.ok || !response.body) throw new Error("The assistant is temporarily unavailable.");
+
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
       let buffer = "";
-      const consume = (line) => {
-        const trimmed = line.trim();
-        if (!trimmed.startsWith("data:")) return;
-        const data = trimmed.slice(5).trim();
-        if (!data || data === "[DONE]") return;
+      let answer = "";
+
+      const appendChunk = (chunk) => {
+        if (!chunk || chunk === "[DONE]") return;
         try {
-          const parsed = JSON.parse(data);
-          if (typeof parsed.text === "string") {
-            fullText += parsed.text;
-            updateMessage(botIndex, { text: fullText });
-          }
-        } catch { /* Ignore malformed streaming chunks. */ }
+          const parsed = JSON.parse(chunk);
+          if (typeof parsed.text === "string") answer += parsed.text;
+        } catch {
+          answer += chunk;
+        }
+        setMessages((current) => {
+          const next = [...current];
+          next[next.length - 1] = { role: "bot", text: answer };
+          return next;
+        });
       };
+
       while (true) {
         const { done, value: chunk } = await reader.read();
-        if (done) break;
-        buffer += decoder.decode(chunk, { stream: true });
+        buffer += decoder.decode(chunk || new Uint8Array(), { stream: !done });
         const lines = buffer.split("\n");
         buffer = lines.pop() || "";
-        lines.forEach(consume);
+        lines.forEach((line) => {
+          const trimmed = line.trim();
+          if (trimmed.startsWith("data:")) appendChunk(trimmed.slice(5).trim());
+        });
+        if (done) break;
       }
-      if (buffer.trim()) consume(buffer);
+      if (buffer.trim().startsWith("data:")) appendChunk(buffer.trim().slice(5).trim());
+      if (!answer) throw new Error("The assistant returned an empty response.");
     } catch (error) {
-      if (error?.name !== "AbortError") {
-        console.error("IY AI error:", error);
-        fullText = ERROR_MESSAGE;
-        setUnavailable(true);
-      }
+      setMessages((current) => {
+        const next = [...current];
+        next[next.length - 1] = { role: "bot", text: error.message || "Something went wrong." };
+        return next;
+      });
     } finally {
-      window.clearTimeout(wakeTimerRef.current);
-      updateMessage(botIndex, { text: fullText || "I couldn't generate a response.", time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }), showContact: false });
       setTyping(false);
-      abortRef.current = null;
     }
-  }, [messages.length, sessionId, typing]);
+  }
 
-  useEffect(() => {
-    const handler = (event) => {
-      const detail = event.detail || {};
-      openChat();
-      if (detail.tab === "chat" || detail.tab === "demos") setTab(detail.tab);
-      if (detail.message) window.setTimeout(() => sendMessage(detail.message), 140);
-    };
-    window.addEventListener("open-chat", handler);
-    return () => window.removeEventListener("open-chat", handler);
-  }, [openChat, sendMessage]);
+  function handleSubmit(event) {
+    event.preventDefault();
+    sendMessage(input);
+  }
 
-  const newChat = () => {
-    if (typing) return;
-    let id = `iy-${Date.now()}-${Math.random().toString(36).slice(2)}`;
-    try { sessionStorage.setItem("iy_ai_session", id); } catch {}
-    setSessionId(id);
-    setMessages([]);
-    setTab("home");
-    setUnavailable(false);
-  };
+  function handleInput(event) {
+    setInput(event.target.value);
+    resizeTextarea();
+  }
 
-  const retry = () => {
-    if (lastQuestionRef.current && !typing) sendMessage(lastQuestionRef.current);
-  };
-
-  const sendFeedback = (index, feedback) => {
-    const selected = messages[index];
-    updateMessage(index, { feedback });
-    fetch(FEEDBACK_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ session_id: sessionId, message: selected?.text || "", feedback }) }).catch(() => {});
-  };
-
-  const theme = genz ? { primary: "#8b5cf6", secondary: "#ec4899", accent: "#d946ef", dark: "#171126", soft: "#faf5ff", bot: "#f5f3ff", border: "#e9d5ff" } : { primary: "#0f766e", secondary: "#06b6d4", accent: "#14b8a6", dark: "#08111f", soft: "#f0fdfa", bot: "#f4f7f8", border: "#dbe4e7" };
+  function handleKeyDown(event) {
+    if (event.key === "Enter" && !event.shiftKey) {
+      event.preventDefault();
+      sendMessage(input);
+    }
+  }
 
   return (
-    <div className="iy-root" style={{ "--iy-primary": theme.primary, "--iy-secondary": theme.secondary, "--iy-accent": theme.accent, "--iy-dark": theme.dark, "--iy-soft": theme.soft, "--iy-bot": theme.bot, "--iy-border": theme.border }}>
-      <div className={`iy-launcher ${open ? "iy-launcher-hidden" : ""}`}>
-        {!open && !hasSeen && <span className="iy-launcher-label">Chat with Ibrar</span>}
-        <button type="button" className="iy-launcher-button" onClick={open ? () => setOpen(false) : openChat} aria-label={open ? "Close IY AI assistant" : "Open IY AI assistant"} title={open ? "Close chat" : "Chat with IY AI"}>
-          {open ? "×" : <><span className="iy-launcher-logo">IY AI</span>{!hasSeen && <span className="iy-launcher-dot" aria-label="New chat" />}</>}
-        </button>
-      </div>
-      {open && <ChatPanel fullscreen={fullscreen} setFullscreen={setFullscreen} onClose={() => setOpen(false)} tab={tab} setTab={setTab} messages={messages} input={input} setInput={setInput} typing={typing} genz={genz} setGenz={setGenz} sendMessage={sendMessage} newChat={newChat} sendFeedback={sendFeedback} inputRef={inputRef} scrollRef={scrollRef} theme={theme} unavailable={unavailable} retry={retry} demo={demo} setDemo={setDemo} onLiveDemo={() => { setDemo(null); setTab("chat"); }} contact={{ email: CONTACT_EMAIL, linkedin: LINKEDIN_URL, github: GITHUB_URL, form: CONTACT_FORM_URL }} />}
+    <div className="fixed bottom-5 right-5 z-50 flex flex-col items-end gap-3 sm:bottom-6 sm:right-6">
+      {open ? (
+        <section className="chat-panel flex h-[min(680px,calc(100dvh-110px))] max-h-[calc(100dvh-96px)] w-[min(420px,calc(100vw-32px))] min-h-0 flex-col rounded-2xl border border-border bg-bg shadow-2xl">
+          <header className="flex shrink-0 items-center justify-between bg-accent px-4 py-3 text-[#04140f]">
+            <div className="flex min-w-0 items-center gap-3">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#04140f] text-sm font-bold text-accent">IY</div>
+              <div>
+                <p className="font-display text-sm font-semibold">IY AI</p>
+                <p className="text-[11px] opacity-75">Portfolio assistant</p>
+              </div>
+            </div>
+            <button type="button" onClick={() => setOpen(false)} className="rounded-md px-2 py-1 text-xl leading-none transition hover:bg-[#04140f]/10" aria-label="Close chat">
+              ×
+            </button>
+          </header>
+
+          <div className="flex shrink-0 items-center justify-between border-b border-border px-3 py-2">
+            <div className="flex gap-1" role="tablist" aria-label="Chat views">
+              <button type="button" role="tab" aria-selected={activeTab === "discover"} onClick={() => setActiveTab("discover")} className={`rounded-md px-3 py-1.5 text-xs font-medium transition ${activeTab === "discover" ? "bg-panel-2 text-text" : "text-text-muted hover:text-text"}`}>
+                Discover
+              </button>
+              <button type="button" role="tab" aria-selected={activeTab === "conversation"} onClick={() => setActiveTab("conversation")} className={`rounded-md px-3 py-1.5 text-xs font-medium transition ${activeTab === "conversation" ? "bg-panel-2 text-text" : "text-text-muted hover:text-text"}`}>
+                Conversation <span className="ml-1 rounded-full bg-accent/20 px-1.5 py-0.5 text-[10px] text-accent">1</span>
+              </button>
+            </div>
+            <button type="button" onClick={startNewChat} className="text-xs text-text-muted transition hover:text-accent">+ New chat</button>
+          </div>
+
+          {activeTab === "discover" ? (
+            <div className="min-h-0 flex-1 overflow-y-auto px-4 py-5 text-sm">
+              <p className="font-display text-lg font-semibold text-text">Hi there 👋</p>
+              <p className="mt-1 text-text-muted">Ask about Ibrar&apos;s projects, skills, or experience.</p>
+              <div className="mt-5 grid gap-2">
+                {suggestions.map((suggestion) => (
+                  <button key={suggestion} type="button" onClick={() => sendMessage(suggestion)} className="rounded-md border border-border px-3 py-2 text-left text-text-muted transition hover:border-accent hover:text-accent">{suggestion}</button>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div ref={messagesRef} className="chat-messages min-h-0 flex-1 space-y-3 overflow-y-auto px-4 py-5 text-sm">
+              {messages.length === 0 ? (
+                <div className="py-8 text-center">
+                  <p className="font-display text-lg font-semibold">Hi there 👋</p>
+                  <p className="mt-2 text-text-muted">Ask me anything about Ibrar&apos;s AI projects.</p>
+                </div>
+              ) : null}
+              {messages.map((message, index) => (
+                <div key={`${message.role}-${index}`} className={`max-w-[88%] rounded-xl px-3 py-2 leading-6 ${message.role === "user" ? "ml-auto max-w-[80%] bg-accent text-[#04140f]" : "bg-panel-2 text-text"}`}>
+                  {message.text ? <MessageText text={message.text} /> : typing && index === messages.length - 1 ? <span className="chat-typing" aria-label="Assistant is typing"><i /><i /><i /></span> : null}
+                </div>
+              ))}
+              <div ref={messagesEndRef} aria-hidden="true" />
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="flex shrink-0 gap-2 border-t border-border p-3">
+            <textarea ref={textareaRef} value={input} onChange={handleInput} onKeyDown={handleKeyDown} rows={1} placeholder="Ask a question..." className="min-h-[40px] max-h-28 min-w-0 flex-1 resize-none overflow-y-auto rounded-md border border-border bg-panel-2 px-3 py-2 text-sm leading-6 outline-none focus:border-accent" aria-label="Chat message" />
+            <button type="submit" disabled={typing || !input.trim()} className="self-end rounded-md bg-accent px-3 py-2 text-sm font-medium text-[#04140f] disabled:opacity-50" aria-label="Send message">Send</button>
+          </form>
+          <p className="shrink-0 border-t border-border px-3 py-1.5 text-center text-[10px] text-text-muted">AI can make mistakes — verify important details</p>
+        </section>
+      ) : null}
+
+      <button type="button" onClick={() => setOpen((current) => !current)} className="rounded-full bg-accent px-4 py-3 text-sm font-semibold text-[#04140f] shadow-lg transition hover:scale-105" aria-label="Open IY AI chat">
+        {open ? "Close" : "Chat with IY AI"}
+      </button>
     </div>
   );
 }
