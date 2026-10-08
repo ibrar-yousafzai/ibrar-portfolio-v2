@@ -248,10 +248,12 @@ body {
   content: "";
   background: var(--hero-image, radial-gradient(circle at 50% 35%, #162e49, var(--bg) 65%));
   background-position: var(--hero-image-position, center center);
-  background-size: cover;
+  background-size: var(--hero-image-fit, cover);
+  background-repeat: no-repeat;
+  background-color: var(--bg);
   transform: scale(1.02);
   transform-origin: center center;
-  filter: saturate(0.95) contrast(1.03);
+  filter: brightness(var(--hero-image-brightness, 78%)) saturate(var(--hero-image-saturation, 92%)) contrast(var(--hero-image-contrast, 103%));
 }
 
 .site-hero::after {

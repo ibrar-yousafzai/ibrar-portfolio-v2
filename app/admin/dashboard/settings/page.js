@@ -191,6 +191,21 @@ export default function SettingsAdmin() {
             <Field label="Hero image overlay" hint="Lower values show more of the image (10–80%)">
               <input type="number" min="10" max="80" value={form.heroImageOverlay ?? 42} onChange={(e) => update("heroImageOverlay", Number(e.target.value))} className={inputClass} />
             </Field>
+            <Field label="Hero image fit" hint="Use contain when the full image must remain visible">
+              <select value={form.heroImageFit || "cover"} onChange={(e) => update("heroImageFit", e.target.value)} className={inputClass}>
+                <option value="cover">Cover — fills hero</option>
+                <option value="contain">Contain — shows full image</option>
+              </select>
+            </Field>
+            <Field label="Image brightness (%)" hint="Recommended: 65–90">
+              <input type="number" min="45" max="120" value={form.heroImageBrightness ?? 78} onChange={(e) => update("heroImageBrightness", Number(e.target.value))} className={inputClass} />
+            </Field>
+            <Field label="Image saturation (%)" hint="100 is natural color">
+              <input type="number" min="0" max="160" value={form.heroImageSaturation ?? 92} onChange={(e) => update("heroImageSaturation", Number(e.target.value))} className={inputClass} />
+            </Field>
+            <Field label="Image contrast (%)" hint="100 is unchanged">
+              <input type="number" min="70" max="140" value={form.heroImageContrast ?? 103} onChange={(e) => update("heroImageContrast", Number(e.target.value))} className={inputClass} />
+            </Field>
           </div>
           <Field label="Sidebar role / detail">
             <input value={form.sidebarRole || ""} onChange={(e) => update("sidebarRole", e.target.value)} className={inputClass} placeholder="AI Engineer · RAG Chatbots" />
