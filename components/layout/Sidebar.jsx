@@ -14,7 +14,15 @@ const ITEMS = [
 ];
 
 export default function Sidebar({ settings }) {
+  const profile = {
+    name: "Ibrar Yousafzai",
+    avatarUrl: "",
+    linkedinUrl: "",
+    githubUrl: "",
+    ...settings,
+  };
   const [active, setActive] = useState("hero");
+  const [expanded, setExpanded] = useState(false);
 
   useEffect(() => {
     const sections = ITEMS.map((item) => document.getElementById(item.id)).filter(Boolean);
@@ -32,18 +40,30 @@ export default function Sidebar({ settings }) {
   }, []);
 
   const socials = [
-    { label: "LinkedIn", href: settings.linkedinUrl },
-    { label: "GitHub", href: settings.githubUrl },
+    { label: "LinkedIn", href: profile.linkedinUrl },
+    { label: "GitHub", href: profile.githubUrl },
   ].filter((link) => link.href);
 
   return (
-    <aside className="site-rail">
-      <Link href="/#hero" className="site-rail-logo" aria-label="Back to home">
+    <aside className={`site-rail ${expanded ? "expanded" : ""}`}>
+      <button
+        type="button"
+        className="site-rail-logo"
+        onClick={() => setExpanded((current) => !current)}
+        aria-expanded={expanded}
+        aria-label={expanded ? "Collapse navigation" : "Expand navigation"}
+      >
         <span>IY</span>
-      </Link>
+      </button>
       <nav className="site-rail-nav" aria-label="Primary navigation">
         {ITEMS.map(({ id, label, href, Icon }) => (
-          <Link key={id} href={href} className={`site-rail-item ${active === id ? "active" : ""}`}>
+          <Link
+            key={id}
+            href={href}
+            title={!expanded ? label : undefined}
+            className={`site-rail-item ${active === id ? "active" : ""}`}
+            onClick={() => setExpanded(false)}
+          >
             <Icon size={20} aria-hidden="true" />
             <span>{label}</span>
           </Link>
@@ -51,15 +71,15 @@ export default function Sidebar({ settings }) {
       </nav>
       <div className="site-rail-foot">
         <div className="site-rail-me">
-          {settings.avatarUrl ? (
+          {profile.avatarUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={settings.avatarUrl} alt={settings.name} />
+            <img src={profile.avatarUrl} alt={profile.name} />
           ) : (
             <span className="site-rail-avatar-fallback">IY</span>
           )}
           <div>
-            <strong>{settings.name}</strong>
-            <small>{settings.role?.split("|")[0]?.trim() || "AI Engineer"}</small>
+            <strong>{profile.name}</strong>
+            <small>AI Engineer · Data Scientist</small>
           </div>
         </div>
         {socials.length ? (
