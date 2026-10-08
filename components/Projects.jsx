@@ -1,6 +1,6 @@
 import Reveal from "./Reveal";
 
-export default function Projects({ projects }) {
+export default function Projects({ projects, settings = {} }) {
   const visible = projects.filter((p) => p.published);
 
   return (
