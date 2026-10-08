@@ -5,7 +5,11 @@ export default function Hero({ settings, projectCount, certCount }) {
     <section
       id="hero"
       className="site-hero relative overflow-hidden border-b border-border"
-      style={settings.heroImageUrl ? { "--hero-image": `url("${settings.heroImageUrl}")` } : undefined}
+      style={{
+        ...(settings.heroImageUrl ? { "--hero-image": `url("${settings.heroImageUrl}")` } : {}),
+        "--hero-image-position": settings.heroImagePosition || "center center",
+        "--hero-image-overlay": `${Math.min(80, Math.max(10, Number(settings.heroImageOverlay) || 42))}%`,
+      }}
     >
       <div className="site-hero-content">
         <p className="font-mono-tag text-xs uppercase tracking-[0.2em] text-accent">

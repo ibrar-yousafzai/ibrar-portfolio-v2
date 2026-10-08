@@ -184,6 +184,14 @@ export default function SettingsAdmin() {
               <ImageField label="About profile image" value={form.aboutImageUrl} onChange={(value) => update("aboutImageUrl", value)} />
             </div>
           ) : null}
+          <div className="grid grid-cols-2 gap-4">
+            <Field label="Hero image position" hint="Examples: center center, center 30%, 50% 20%">
+              <input value={form.heroImagePosition || "center center"} onChange={(e) => update("heroImagePosition", e.target.value)} className={inputClass} />
+            </Field>
+            <Field label="Hero image overlay" hint="Lower values show more of the image (10–80%)">
+              <input type="number" min="10" max="80" value={form.heroImageOverlay ?? 42} onChange={(e) => update("heroImageOverlay", Number(e.target.value))} className={inputClass} />
+            </Field>
+          </div>
           <Field label="Sidebar role / detail">
             <input value={form.sidebarRole || ""} onChange={(e) => update("sidebarRole", e.target.value)} className={inputClass} placeholder="AI Engineer · RAG Chatbots" />
           </Field>

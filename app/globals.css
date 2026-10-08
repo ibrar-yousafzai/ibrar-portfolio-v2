@@ -247,11 +247,11 @@ body {
   z-index: -2;
   content: "";
   background: var(--hero-image, radial-gradient(circle at 50% 35%, #162e49, var(--bg) 65%));
-  background-position: center top;
+  background-position: var(--hero-image-position, center center);
   background-size: cover;
-  transform: scale(1.08);
-  transform-origin: center top;
-  filter: saturate(0.7);
+  transform: scale(1.02);
+  transform-origin: center center;
+  filter: saturate(0.95) contrast(1.03);
 }
 
 .site-hero::after {
@@ -259,7 +259,7 @@ body {
   inset: 0;
   z-index: -1;
   content: "";
-  background: linear-gradient(180deg, rgb(10 15 26 / 60%), rgb(10 15 26 / 94%)), radial-gradient(circle at 50% 40%, rgb(53 208 192 / 20%), transparent 50%);
+  background: linear-gradient(180deg, rgb(10 15 26 / var(--hero-image-overlay, 42%)), rgb(10 15 26 / 68%)), radial-gradient(circle at 50% 40%, rgb(53 208 192 / 14%), transparent 50%);
 }
 
 .site-hero-content {

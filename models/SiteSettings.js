@@ -27,6 +27,8 @@ const SiteSettingsSchema = new mongoose.Schema(
     eyebrow: { type: String, default: "AI ENGINEER · DATA SCIENTIST" },
     avatarUrl: { type: String, default: "" },
     heroImageUrl: { type: String, default: "" },
+    heroImagePosition: { type: String, default: "center center" },
+    heroImageOverlay: { type: Number, default: 42 },
     aboutImageUrl: { type: String, default: "" },
     useSameProfileImage: { type: Boolean, default: true },
     sidebarRole: { type: String, default: "AI Engineer · RAG Chatbots" },
