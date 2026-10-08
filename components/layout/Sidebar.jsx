@@ -80,7 +80,7 @@ export default function Sidebar({ settings }) {
           )}
           <div>
             <strong>{profile.name}</strong>
-            <small>AI Engineer · Data Scientist</small>
+            <small>AI Engineer · RAG Chatbots</small>
           </div>
         </div>
         {socials.length ? (

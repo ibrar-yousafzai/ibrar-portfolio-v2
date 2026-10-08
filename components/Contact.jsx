@@ -15,11 +15,16 @@ export default function Contact({ settings }) {
           Let&apos;s build something data-driven and useful.
         </h2>
         <p className="mt-4 max-w-2xl text-text-muted">
-          I&apos;m open to AI, machine learning, and data science opportunities, plus collaboration on
-          projects where the work needs to be clear, practical, and measurable.
+          Tell me what your customers keep asking and I&apos;ll reply with a clear plan for a useful AI assistant.
         </p>
 
         <div className="mt-8 flex flex-wrap gap-4">
+          <MagneticButton
+            href="/rag#contact-rag"
+            className="rounded-md bg-accent px-5 py-2.5 text-sm font-medium text-[#04140f] transition hover:opacity-90"
+          >
+            Book a Free Call
+          </MagneticButton>
           {links.map((l) => (
             <a
               key={l.label}
@@ -32,7 +37,7 @@ export default function Contact({ settings }) {
           {settings.resumeUrl ? (
             <MagneticButton
               href={settings.resumeUrl}
-              className="rounded-md bg-accent px-5 py-2.5 text-sm font-medium text-[#04140f] transition hover:opacity-90"
+              className="rounded-md border border-border px-5 py-2.5 text-sm font-medium text-text transition hover:border-accent hover:text-accent"
             >
               Download Resume
             </MagneticButton>

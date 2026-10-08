@@ -31,6 +31,8 @@
 
 html {
   scroll-behavior: smooth;
+  scrollbar-color: #2a3350 var(--bg);
+  scrollbar-width: thin;
 }
 
 body {
@@ -109,6 +111,15 @@ body {
   text-transform: uppercase;
   white-space: nowrap;
   transition: color 0.2s, background 0.2s;
+}
+
+.site-rail-item span {
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.site-rail.expanded .site-rail-item span {
+  opacity: 1;
 }
 
 .site-rail-item:hover {
@@ -192,8 +203,10 @@ body {
   z-index: -2;
   content: "";
   background: var(--hero-image, radial-gradient(circle at 50% 35%, #162e49, var(--bg) 65%));
-  background-position: center;
+  background-position: center 12%;
   background-size: cover;
+  transform: scale(1.05);
+  transform-origin: center 12%;
   filter: saturate(0.7);
 }
 
@@ -420,6 +433,13 @@ body {
   margin: 0 0 16px;
   color: var(--text-muted);
   line-height: 1.75;
+}
+
+.about-copy > .about-open-to {
+  padding: 10px 12px;
+  border-left: 2px solid var(--accent-2);
+  background: color-mix(in srgb, var(--accent-2) 7%, transparent);
+  font-size: 0.85rem;
 }
 
 .about-copy strong {

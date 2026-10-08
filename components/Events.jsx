@@ -8,10 +8,10 @@ export default function Events({ events }) {
       <div className="mx-auto max-w-6xl px-6 py-14">
         <p className="font-mono-tag text-xs uppercase tracking-[0.2em] text-accent">Events</p>
         <h2 className="mt-3 text-3xl font-semibold tracking-tight md:text-4xl">
-          Event Attempts &amp; Certificates
+          Events &amp; Certificates
         </h2>
         <p className="mt-4 max-w-2xl text-text-muted">
-          Talks, workshops, competitions, and community events I&apos;ve attended or attempted.
+          Talks, workshops, competitions, and community events I&apos;ve attended.
         </p>
 
         {visible.length === 0 ? (

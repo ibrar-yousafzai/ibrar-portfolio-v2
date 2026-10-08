@@ -21,21 +21,24 @@ export default function About({ settings }) {
 
           <div className="about-copy">
             <h3>{settings.aboutIntro || "Building AI that solves real business problems"}</h3>
-            {settings.aboutBody ? <p>{settings.aboutBody}</p> : null}
+            {settings.aboutBody ? (
+              <p>{settings.aboutBody.replace(/entry-level/gi, "AI").replace(/aspiring AI Engineer/gi, "AI Engineer")}</p>
+            ) : null}
             {settings.communityName ? (
               <p>
                 I also lead <strong>{settings.communityName}</strong>, a community initiative around learning,
                 collaboration, and opportunity.
               </p>
             ) : null}
+            {settings.openTo?.length ? (
+              <p className="about-open-to">
+                <strong>Open to roles:</strong> {settings.openTo.join(" · ")}
+              </p>
+            ) : null}
             <div className="about-panels">
               <div>
                 <h4>How I work</h4>
                 <ul>{settings.howIWork?.map((item, i) => <li key={i}>— {item}</li>)}</ul>
-              </div>
-              <div>
-                <h4>Open to</h4>
-                <ul>{settings.openTo?.map((item, i) => <li key={i}>— {item}</li>)}</ul>
               </div>
             </div>
           </div>
