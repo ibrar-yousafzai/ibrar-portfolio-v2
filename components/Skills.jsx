@@ -4,19 +4,25 @@ export default function Skills({ settings }) {
   return (
     <section id="skills" className="border-b border-border">
       <div className="mx-auto max-w-6xl px-6 py-14">
-        <p className="font-mono-tag text-xs uppercase tracking-[0.2em] text-accent">Toolkit</p>
-        <h2 className="mt-3 text-3xl font-semibold tracking-tight md:text-4xl">Skills & Tools</h2>
+        <div className="projects-heading">
+          <div>
+            <p className="section-kicker">Toolkit</p>
+            <h2>Tools I use to ship</h2>
+          </div>
+          <p>A practical stack for turning messy data and business workflows into dependable AI products.</p>
+        </div>
 
-        <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="skills-showcase">
           {settings.skills?.map((group, i) => (
             <Reveal key={i} delay={i * 80}>
-              <div className="rounded-lg border border-border bg-panel p-5 transition duration-150 hover:border-accent">
-              <h3 className="font-display text-sm font-semibold text-text">{group.category}</h3>
-              <div className="mt-3 flex flex-wrap gap-2">
+              <div className="skill-card">
+              <div className="skill-card-top"><span>{String(i + 1).padStart(2, "0")}</span><h3>{group.category}</h3></div>
+              <div className="skill-meter"><span style={{ width: `${Math.min(92, 48 + (group.items?.length || 0) * 8)}%` }} /></div>
+              <div className="skill-list">
                 {group.items?.map((item, j) => (
                   <span
                     key={j}
-                    className="font-mono-tag rounded border border-border bg-panel-2 px-2 py-1 text-xs text-text-muted"
+                    className="skill-chip"
                   >
                     {item}
                   </span>

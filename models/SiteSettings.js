@@ -21,7 +21,12 @@ const SiteSettingsSchema = new mongoose.Schema(
       default:
         "I focus on Artificial Intelligence, Machine Learning, and data-driven analysis — building practical work that turns data into useful decisions.",
     },
+    eyebrow: { type: String, default: "AI ENGINEER · DATA SCIENTIST" },
     avatarUrl: { type: String, default: "" },
+    heroImageUrl: { type: String, default: "" },
+    aboutImageUrl: { type: String, default: "" },
+    useSameProfileImage: { type: Boolean, default: true },
+    sidebarRole: { type: String, default: "AI Engineer · RAG Chatbots" },
     faviconUrl: { type: String, default: "" },
 
     // About
@@ -47,6 +52,7 @@ const SiteSettingsSchema = new mongoose.Schema(
     githubUrl: { type: String, default: "" },
     kaggleUrl: { type: String, default: "" },
     facebookUrl: { type: String, default: "" },
+    instagramUrl: { type: String, default: "" },
     email: { type: String, default: "" },
     resumeUrl: { type: String, default: "" },
     location: { type: String, default: "Islamabad, Pakistan" },

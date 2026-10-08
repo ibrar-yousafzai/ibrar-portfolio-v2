@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Bot, BriefcaseBusiness, Eye, GraduationCap, Home, Mail, User } from "lucide-react";
+import { Bot, BriefcaseBusiness, Eye, Globe, GraduationCap, Home, Mail, MessageCircle, User } from "lucide-react";
 
 const ITEMS = [
   { id: "hero", label: "Home", href: "/#hero", Icon: Home },
@@ -18,6 +18,7 @@ export default function Sidebar({ settings }) {
   const profile = {
     name: "Ibrar Yousafzai",
     avatarUrl: "",
+    sidebarRole: "AI Engineer · RAG Chatbots",
     linkedinUrl: "",
     githubUrl: "",
     ...settings,
@@ -41,8 +42,12 @@ export default function Sidebar({ settings }) {
   }, []);
 
   const socials = [
-    { label: "LinkedIn", href: profile.linkedinUrl },
-    { label: "GitHub", href: profile.githubUrl },
+    { label: "WhatsApp", href: profile.whatsappUrl, Icon: MessageCircle },
+    { label: "LinkedIn", href: profile.linkedinUrl, Icon: Globe },
+    { label: "GitHub", href: profile.githubUrl, Icon: Globe },
+    { label: "Kaggle", href: profile.kaggleUrl, Icon: BriefcaseBusiness },
+    { label: "Facebook", href: profile.facebookUrl, Icon: Globe },
+    { label: "Instagram", href: profile.instagramUrl, Icon: Globe },
   ].filter((link) => link.href);
 
   return (
@@ -80,14 +85,15 @@ export default function Sidebar({ settings }) {
           )}
           <div>
             <strong>{profile.name}</strong>
-            <small>AI Engineer · RAG Chatbots</small>
+            <small>{profile.sidebarRole}</small>
           </div>
         </div>
         {socials.length ? (
           <div className="site-rail-social">
-            {socials.map((social) => (
-              <a key={social.label} href={social.href} target="_blank" rel="noreferrer">
-                {social.label}
+            {socials.map(({ label, href, Icon }) => (
+              <a key={label} href={href} title={label} target="_blank" rel="noreferrer">
+                <Icon size={15} aria-hidden="true" />
+                <span className="sr-only">{label}</span>
               </a>
             ))}
           </div>

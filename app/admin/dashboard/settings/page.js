@@ -25,6 +25,28 @@ function Section({ title, children }) {
   );
 }
 
+function ImageField({ label, value, onChange, hint }) {
+  function handleFile(event) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) {
+      window.alert("Please choose an image smaller than 2 MB.");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => onChange(String(reader.result));
+    reader.readAsDataURL(file);
+  }
+
+  return (
+    <Field label={label} hint={hint}>
+      <input value={value || ""} onChange={(e) => onChange(e.target.value)} className={inputClass} placeholder="https://..." />
+      <input type="file" accept="image/*" onChange={handleFile} className="mt-2 block w-full text-xs text-text-muted file:mr-3 file:rounded file:border-0 file:bg-panel-2 file:px-3 file:py-1.5 file:text-text" />
+      {value ? <img src={value} alt="" className="mt-3 h-20 w-32 rounded object-cover" /> : null}
+    </Field>
+  );
+}
+
 // Skill groups are edited as "Category: item, item, item" lines for simplicity.
 function skillsToText(skills) {
   return (skills || []).map((g) => `${g.category}: ${(g.items || []).join(", ")}`).join("\n");
@@ -131,14 +153,7 @@ export default function SettingsAdmin() {
             />
           </Field>
           <div className="grid grid-cols-2 gap-4">
-            <Field label="Profile photo URL" hint="Shown as your photo in the hero section">
-              <input
-                value={form.avatarUrl}
-                onChange={(e) => update("avatarUrl", e.target.value)}
-                className={inputClass}
-                placeholder="https://..."
-              />
-            </Field>
+            <ImageField label="Shared profile image" value={form.avatarUrl} onChange={(value) => update("avatarUrl", value)} hint="Used everywhere when the shared-image option is enabled." />
             <Field label="Favicon URL" hint="Small icon shown in the browser tab">
               <input
                 value={form.faviconUrl}
@@ -148,6 +163,19 @@ export default function SettingsAdmin() {
               />
             </Field>
           </div>
+          <label className="flex items-center gap-2 text-sm text-text-muted">
+            <input type="checkbox" checked={Boolean(form.useSameProfileImage)} onChange={(e) => update("useSameProfileImage", e.target.checked)} />
+            Use this image for both hero and About
+          </label>
+          {!form.useSameProfileImage ? (
+            <div className="grid grid-cols-2 gap-4">
+              <ImageField label="Hero background image" value={form.heroImageUrl} onChange={(value) => update("heroImageUrl", value)} />
+              <ImageField label="About profile image" value={form.aboutImageUrl} onChange={(value) => update("aboutImageUrl", value)} />
+            </div>
+          ) : null}
+          <Field label="Sidebar role / detail">
+            <input value={form.sidebarRole || ""} onChange={(e) => update("sidebarRole", e.target.value)} className={inputClass} placeholder="AI Engineer · RAG Chatbots" />
+          </Field>
         </Section>
 
         <Section title="About">
@@ -253,6 +281,9 @@ export default function SettingsAdmin() {
             </Field>
             <Field label="Facebook URL">
               <input value={form.facebookUrl} onChange={(e) => update("facebookUrl", e.target.value)} className={inputClass} />
+            </Field>
+            <Field label="Instagram URL">
+              <input value={form.instagramUrl || ""} onChange={(e) => update("instagramUrl", e.target.value)} className={inputClass} />
             </Field>
             <Field label="Email">
               <input value={form.email} onChange={(e) => update("email", e.target.value)} className={inputClass} />

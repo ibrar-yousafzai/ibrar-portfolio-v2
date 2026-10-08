@@ -1,38 +1,35 @@
 import Reveal from "./Reveal";
 
-const STATUS_STYLES = {
-  Live: "bg-accent/15 text-accent border-accent/40",
-  "Case study": "bg-accent-2/15 text-accent-2 border-accent-2/40",
-  "In progress": "bg-border text-text-muted border-border",
-};
-
 export default function Projects({ projects }) {
   const visible = projects.filter((p) => p.published);
 
   return (
     <section id="projects" className="border-b border-border">
       <div className="mx-auto max-w-6xl px-6 py-14">
-        <p className="font-mono-tag text-xs uppercase tracking-[0.2em] text-accent">Selected work</p>
-        <h2 className="mt-3 text-3xl font-semibold tracking-tight md:text-4xl">Projects</h2>
+        <div className="projects-heading">
+          <div>
+            <p className="section-kicker">Selected work</p>
+            <h2>Built for useful outcomes</h2>
+          </div>
+          <p>Applied AI, data products, and automation with a clear path from problem to result.</p>
+        </div>
 
         {visible.length === 0 ? (
           <p className="mt-8 text-text-muted">
             Projects will appear here as soon as they&apos;re added from the admin dashboard.
           </p>
         ) : (
-          <div className="mt-10 grid gap-6 md:grid-cols-2">
+          <div className="projects-grid">
             {visible.map((p, i) => (
               <Reveal key={p._id} delay={i * 80}>
-                <article className="flex flex-col rounded-lg border border-border bg-panel p-6 transition duration-150 hover:border-accent motion-safe:hover:-translate-y-1 motion-safe:hover:shadow-[0_12px_30px_-18px_var(--accent)]">
+                <article className="project-card">
+                <div className="project-card-media">
+                  {p.imageUrl ? <img src={p.imageUrl} alt="" /> : <span>{String(i + 1).padStart(2, "0")}</span>}
+                  <span className="project-card-status">{p.status}</span>
+                </div>
+                <div className="project-card-body">
                 <div className="flex items-center justify-between">
                   <span className="font-mono-tag text-xs text-text-muted">{p.category}</span>
-                  <span
-                    className={`font-mono-tag rounded border px-2 py-0.5 text-[10px] uppercase tracking-wide ${
-                      STATUS_STYLES[p.status] || STATUS_STYLES["Case study"]
-                    }`}
-                  >
-                    {p.status}
-                  </span>
                 </div>
                 <h3 className="mt-3 font-display text-xl font-semibold text-text">{p.title}</h3>
                 <p className="mt-2 text-sm text-text-muted">{p.summary}</p>
@@ -57,11 +54,12 @@ export default function Projects({ projects }) {
                 {p.caseStudyUrl ? (
                   <a
                     href={p.caseStudyUrl}
-                    className="mt-5 text-sm font-medium text-accent transition duration-150 hover:underline"
+                    className="project-card-link"
                   >
                     Open case study →
                   </a>
                 ) : null}
+                </div>
                 </article>
               </Reveal>
             ))}

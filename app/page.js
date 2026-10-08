@@ -45,8 +45,17 @@ async function getData() {
   const announcements = await Announcement.find({}).sort({ order: 1, createdAt: -1 });
   const communities = await CommunityModel.find({}).sort({ order: 1, createdAt: 1 });
 
+  const plainSettings = toPlain(settings);
+  if (plainSettings.useSameProfileImage) {
+    plainSettings.heroImageUrl = plainSettings.avatarUrl || plainSettings.heroImageUrl;
+    plainSettings.aboutImageUrl = plainSettings.avatarUrl || plainSettings.aboutImageUrl;
+  } else {
+    plainSettings.heroImageUrl = plainSettings.heroImageUrl || plainSettings.avatarUrl;
+    plainSettings.aboutImageUrl = plainSettings.aboutImageUrl || plainSettings.avatarUrl;
+  }
+
   return {
-    settings: toPlain(settings),
+    settings: plainSettings,
     projects: toPlain(projects),
     certifications: toPlain(certifications),
     events: toPlain(events),

@@ -11,9 +11,9 @@ export default function About({ settings }) {
         <div className="about-grid">
           <div className="about-photo-wrap">
             <div className="about-photo-shape" aria-hidden="true" />
-            {settings.avatarUrl ? (
+            {settings.aboutImageUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={settings.avatarUrl} alt={settings.name} className="about-photo" />
+              <img src={settings.aboutImageUrl} alt={settings.name} className="about-photo" />
             ) : (
               <div className="about-photo about-photo-fallback">IY</div>
             )}
