@@ -12,12 +12,12 @@ export default function Hero({ settings, projectCount, certCount }) {
       className="site-hero relative overflow-hidden border-b border-border"
       style={{
         ...(settings.heroImageUrl ? { "--hero-image": `url("${settings.heroImageUrl}")` } : {}),
-        "--hero-image-position": settings.heroImagePosition || "center center",
+        "--hero-image-position": settings.heroImagePosition || "center 28%",
         "--hero-image-fit": settings.heroImageFit === "contain" ? "contain" : "cover",
-        "--hero-image-overlay": `${clamp(settings.heroImageOverlay, 10, 80, 42)}%`,
-        "--hero-image-brightness": `${clamp(settings.heroImageBrightness, 45, 120, 78)}%`,
-        "--hero-image-saturation": `${clamp(settings.heroImageSaturation, 0, 160, 92)}%`,
-        "--hero-image-contrast": `${clamp(settings.heroImageContrast, 70, 140, 103)}%`,
+        "--hero-image-overlay": `${clamp(settings.heroImageOverlay, 10, 80, 24)}%`,
+        "--hero-image-brightness": `${clamp(settings.heroImageBrightness, 45, 120, 100)}%`,
+        "--hero-image-saturation": `${clamp(settings.heroImageSaturation, 0, 160, 100)}%`,
+        "--hero-image-contrast": `${clamp(settings.heroImageContrast, 70, 140, 100)}%`,
       }}
     >
       <div className="site-hero-content">
