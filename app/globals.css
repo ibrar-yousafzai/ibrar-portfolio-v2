@@ -113,13 +113,43 @@ body {
   transition: color 0.2s, background 0.2s;
 }
 
+.site-rail-item svg {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 20px;
+}
+
 .site-rail-item span {
+  width: 0;
+  overflow: hidden;
   opacity: 0;
   transition: opacity 0.15s ease;
 }
 
 .site-rail.expanded .site-rail-item span {
+  width: auto;
   opacity: 1;
+}
+
+.site-rail:not(.expanded) .site-rail-item {
+  justify-content: center;
+  gap: 0;
+  padding-right: 12px;
+  padding-left: 12px;
+}
+
+.site-rail:not(.expanded) .site-rail-foot {
+  padding-right: 0;
+  padding-left: 0;
+}
+
+.site-rail:not(.expanded) .site-rail-me {
+  justify-content: center;
+}
+
+.site-rail:not(.expanded) .site-rail-me > div,
+.site-rail:not(.expanded) .site-rail-social {
+  display: none !important;
 }
 
 .site-rail-item:hover {
@@ -203,10 +233,10 @@ body {
   z-index: -2;
   content: "";
   background: var(--hero-image, radial-gradient(circle at 50% 35%, #162e49, var(--bg) 65%));
-  background-position: center 12%;
+  background-position: center top;
   background-size: cover;
-  transform: scale(1.05);
-  transform-origin: center 12%;
+  transform: scale(1.08);
+  transform-origin: center top;
   filter: saturate(0.7);
 }
 
