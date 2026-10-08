@@ -414,6 +414,9 @@ export default function SettingsAdmin() {
         </Section>
 
         <Section title="SEO">
+          <Field label="Canonical site URL" hint="Used for search engines, structured data, sitemap, and AI-readable links">
+            <input value={form.siteUrl || ""} onChange={(e) => update("siteUrl", e.target.value)} className={inputClass} placeholder="https://your-domain.com" />
+          </Field>
           <Field label="Meta title">
             <input value={form.metaTitle} onChange={(e) => update("metaTitle", e.target.value)} className={inputClass} />
           </Field>
@@ -425,6 +428,13 @@ export default function SettingsAdmin() {
               rows={2}
             />
           </Field>
+          <Field label="AI-readable profile summary" hint="One clear paragraph describing who you are, what you build, and who you help">
+            <textarea value={form.llmsTxtSummary || ""} onChange={(e) => update("llmsTxtSummary", e.target.value)} className={inputClass} rows={3} />
+          </Field>
+          <label className="flex items-center gap-2 text-sm text-text-muted">
+            <input type="checkbox" checked={form.allowAiCrawlers !== false} onChange={(e) => update("allowAiCrawlers", e.target.checked)} />
+            Allow AI crawlers to read and recommend this portfolio
+          </label>
         </Section>
 
         {error ? <p className="text-sm text-red-400">{error}</p> : null}

@@ -4,6 +4,7 @@ import { connectDB } from "@/lib/mongodb";
 import SiteSettings from "@/models/SiteSettings";
 import ScrollProgress from "@/components/ScrollProgress";
 import ChatWidget from "@/components/ChatWidget";
+import { brand, resolveSiteUrl } from "@/lib/brand";
 
 const spaceGrotesk = Space_Grotesk({
   variable: "--font-space-grotesk",
@@ -27,18 +28,37 @@ export async function generateMetadata() {
   try {
     await connectDB();
     const settings = await SiteSettings.findOne({ key: "main" });
+    const siteUrl = resolveSiteUrl(settings?.siteUrl);
+    const title = settings?.metaTitle || "Ibrar Yousafzai — AI Engineer, RAG Chatbot & Software Developer";
+    const description =
+      settings?.metaDescription ||
+      "Ibrar Yousafzai builds RAG chatbots, AI assistants, websites, apps, custom software, SaaS products, automation, and data systems for businesses.";
     return {
-      title: settings?.metaTitle || "Ibrar Yousafzai — Data Scientist | AI & ML",
-      description:
-        settings?.metaDescription ||
-        "Entry-level Data Scientist and AI/ML engineer building practical, explainable machine learning work.",
+      title,
+      description,
+      keywords: [
+        "Ibrar Yousafzai",
+        "AI engineer",
+        "RAG chatbot developer",
+        "AI assistant development",
+        "custom software development",
+        "SaaS development",
+        "web app development",
+        "machine learning",
+        "data science",
+      ],
+      metadataBase: new URL(siteUrl),
+      alternates: { canonical: siteUrl },
+      openGraph: { title, description, url: siteUrl, type: "website", siteName: brand.brandName },
+      twitter: { card: "summary_large_image", title, description },
+      robots: settings?.allowAiCrawlers === false ? { index: true, follow: true, "noai": true, "noimageai": true } : { index: true, follow: true },
       icons: settings?.faviconUrl ? { icon: settings.faviconUrl } : undefined,
     };
   } catch {
     return {
-      title: "Ibrar Yousafzai — Data Scientist | AI & ML",
+      title: "Ibrar Yousafzai — AI Engineer, RAG Chatbot & Software Developer",
       description:
-        "Entry-level Data Scientist and AI/ML engineer building practical, explainable machine learning work.",
+        "Ibrar Yousafzai builds RAG chatbots, AI assistants, websites, apps, custom software, SaaS products, automation, and data systems for businesses.",
     };
   }
 }

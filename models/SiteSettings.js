@@ -108,6 +108,7 @@ const SiteSettingsSchema = new mongoose.Schema(
     metaDescription: { type: String, default: "" },
     allowAiCrawlers: { type: Boolean, default: true },
     llmsTxtSummary: { type: String, default: "" },
+    siteUrl: { type: String, default: "" },
   },
   { timestamps: true }
 );

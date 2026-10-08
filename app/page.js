@@ -26,6 +26,7 @@ import VisitorCounter from "@/components/VisitorCounter";
 import Community from "@/components/Community";
 import Contact from "@/components/Contact";
 import Footer from "@/components/Footer";
+import { brand, resolveSiteUrl } from "@/lib/brand";
 
 export const dynamic = "force-dynamic";
 
@@ -68,9 +69,37 @@ async function getData() {
 
 export default async function Home() {
   const { settings, projects, certifications, events, experiences, announcements, communities } = await getData();
+  const siteUrl = resolveSiteUrl(settings.siteUrl);
+  const publishedProjects = projects.filter((project) => project.published);
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    name: settings.name || brand.personName,
+    url: siteUrl,
+    image: settings.avatarUrl || undefined,
+    jobTitle: settings.role || "AI Engineer and Data Scientist",
+    description: settings.metaDescription || settings.heroTagline,
+    address: settings.location ? { "@type": "PostalAddress", addressLocality: settings.location } : undefined,
+    sameAs: [settings.linkedinUrl, settings.githubUrl, settings.kaggleUrl, settings.facebookUrl, settings.instagramUrl].filter(Boolean),
+    knowsAbout: ["RAG chatbots", "AI assistants", "AI agents", "automation", "web apps", "SaaS", "custom software", "machine learning", "data science"],
+    makesOffer: (settings.services || []).map((service) => ({
+      "@type": "Offer",
+      itemOffered: { "@type": "Service", name: service.name, description: service.description },
+    })),
+    worksFor: { "@type": "Organization", name: brand.brandName, url: siteUrl },
+  };
+  const projectJsonLd = publishedProjects.map((project) => ({
+    "@type": "CreativeWork",
+    name: project.title,
+    description: project.summary,
+    url: project.caseStudyUrl || siteUrl,
+    creator: { "@type": "Person", name: settings.name || brand.personName },
+    keywords: project.tags?.join(", "),
+  }));
 
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify([jsonLd, ...projectJsonLd]) }} />
       <Sidebar settings={settings} />
       <div className="site-main">
         <main className="flex-1">
