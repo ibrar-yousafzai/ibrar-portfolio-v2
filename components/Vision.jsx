@@ -24,9 +24,21 @@ const TABS = {
   },
 };
 
-export default function Vision() {
+export default function Vision({ settings = {} }) {
   const [active, setActive] = useState("products");
-  const tab = TABS[active];
+  const tabs = {
+    products: {
+      ...TABS.products,
+      title: settings.visionProductsTitle || TABS.products.title,
+      body: settings.visionProductsBody?.length ? settings.visionProductsBody : TABS.products.body,
+    },
+    growth: {
+      ...TABS.growth,
+      title: settings.visionGrowthTitle || TABS.growth.title,
+      body: settings.visionGrowthBody?.length ? settings.visionGrowthBody : TABS.growth.body,
+    },
+  };
+  const tab = tabs[active];
   const Icon = tab.Icon;
 
   return (
@@ -34,11 +46,11 @@ export default function Vision() {
       <div className="section-shell">
         <div className="section-heading">
           <p className="section-kicker"><Icon size={16} aria-hidden="true" /> Vision</p>
-          <h2>Where I&apos;m heading</h2>
+          <h2>{settings.visionHeading || "Where I’m heading"}</h2>
         </div>
 
         <div className="vision-tabs" role="tablist" aria-label="Vision">
-          {Object.entries(TABS).map(([key, item]) => {
+          {Object.entries(tabs).map(([key, item]) => {
             const TabIcon = item.Icon;
             return (
               <button key={key} type="button" role="tab" aria-selected={active === key} className={active === key ? "active" : ""} onClick={() => setActive(key)}>

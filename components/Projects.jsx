@@ -8,10 +8,10 @@ export default function Projects({ projects }) {
       <div className="mx-auto max-w-6xl px-6 py-14">
         <div className="projects-heading">
           <div>
-            <p className="section-kicker">Selected work</p>
-            <h2>Built for useful outcomes</h2>
+            <p className="section-kicker">{settings?.projectsKicker || "Selected work"}</p>
+            <h2>{settings?.projectsHeading || "Built for useful outcomes"}</h2>
           </div>
-          <p>Applied AI, data products, and automation with a clear path from problem to result.</p>
+          <p>{settings?.projectsIntro || "Applied AI, data products, and automation with a clear path from problem to result."}</p>
         </div>
 
         {visible.length === 0 ? (

@@ -6,10 +6,10 @@ export default function Skills({ settings }) {
       <div className="mx-auto max-w-6xl px-6 py-14">
         <div className="projects-heading">
           <div>
-            <p className="section-kicker">Toolkit</p>
-            <h2>Tools I use to ship</h2>
+            <p className="section-kicker">{settings?.skillsKicker || "Toolkit"}</p>
+            <h2>{settings?.skillsHeading || "Tools I use to ship"}</h2>
           </div>
-          <p>A practical stack for turning messy data and business workflows into dependable AI products.</p>
+          <p>{settings?.skillsIntro || "A practical stack for turning messy data and business workflows into dependable AI products."}</p>
         </div>
 
         <div className="skills-showcase">

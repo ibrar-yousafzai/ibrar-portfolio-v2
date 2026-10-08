@@ -21,6 +21,9 @@ const SiteSettingsSchema = new mongoose.Schema(
       default:
         "I focus on Artificial Intelligence, Machine Learning, and data-driven analysis — building practical work that turns data into useful decisions.",
     },
+    heroPrimaryCta: { type: String, default: "Book a Free Call" },
+    heroSecondaryCta: { type: String, default: "See Live Demo" },
+    heroBandLabel: { type: String, default: "RAG · AGENTS · AUTOMATION" },
     eyebrow: { type: String, default: "AI ENGINEER · DATA SCIENTIST" },
     avatarUrl: { type: String, default: "" },
     heroImageUrl: { type: String, default: "" },
@@ -31,6 +34,7 @@ const SiteSettingsSchema = new mongoose.Schema(
 
     // About
     aboutIntro: { type: String, default: "" },
+    aboutSectionSubtitle: { type: String, default: "From student builder to AI service provider" },
     aboutBody: { type: String, default: "" },
     howIWork: { type: [String], default: [] },
     openTo: { type: [String], default: [] },
@@ -45,6 +49,28 @@ const SiteSettingsSchema = new mongoose.Schema(
 
     // Vision
     visionStatement: { type: String, default: "" },
+    visionHeading: { type: String, default: "Where I’m heading" },
+    visionProductsTitle: { type: String, default: "Building Useful AI Products" },
+    visionProductsBody: { type: [String], default: [] },
+    visionGrowthTitle: { type: String, default: "Growing Together" },
+    visionGrowthBody: { type: [String], default: [] },
+
+    // Home section copy
+    businessCardTitle: { type: String, default: "I’m a business looking for an AI assistant" },
+    businessCardBody: { type: String, default: "See how I build AI assistants trained on your own data." },
+    businessCardLink: { type: String, default: "Explore AI Assistants →" },
+    collaborationCardTitle: { type: String, default: "I’m hiring, collaborating, or want to see projects" },
+    collaborationCardBody: { type: String, default: "Browse my data science and machine learning work directly." },
+    collaborationCardLink: { type: String, default: "View projects →" },
+    projectsKicker: { type: String, default: "Selected work" },
+    projectsHeading: { type: String, default: "Built for useful outcomes" },
+    projectsIntro: { type: String, default: "Applied AI, data products, and automation with a clear path from problem to result." },
+    skillsKicker: { type: String, default: "Toolkit" },
+    skillsHeading: { type: String, default: "Tools I use to ship" },
+    skillsIntro: { type: String, default: "A practical stack for turning messy data and business workflows into dependable AI products." },
+    contactHeading: { type: String, default: "Let’s build something data-driven and useful." },
+    contactBody: { type: String, default: "Tell me what your customers keep asking and I’ll reply with a clear plan for a useful AI assistant." },
+    contactCta: { type: String, default: "Book a Free Call" },
 
     // Contact / socials
     whatsappUrl: { type: String, default: "" },

@@ -5,7 +5,7 @@ export default function About({ settings }) {
         <div className="section-heading">
           <p className="section-kicker">Introduction</p>
           <h2>About {settings.name?.split(" ")[0] || "Me"}</h2>
-          <p>From student builder to AI service provider</p>
+          <p>{settings.aboutSectionSubtitle || "From student builder to AI service provider"}</p>
         </div>
 
         <div className="about-grid">

@@ -153,6 +153,17 @@ export default function SettingsAdmin() {
             />
           </Field>
           <div className="grid grid-cols-2 gap-4">
+            <Field label="Primary button text">
+              <input value={form.heroPrimaryCta || ""} onChange={(e) => update("heroPrimaryCta", e.target.value)} className={inputClass} />
+            </Field>
+            <Field label="Secondary button text">
+              <input value={form.heroSecondaryCta || ""} onChange={(e) => update("heroSecondaryCta", e.target.value)} className={inputClass} />
+            </Field>
+            <Field label="Hero band text">
+              <input value={form.heroBandLabel || ""} onChange={(e) => update("heroBandLabel", e.target.value)} className={inputClass} />
+            </Field>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
             <ImageField label="Shared profile image" value={form.avatarUrl} onChange={(value) => update("avatarUrl", value)} hint="Used everywhere when the shared-image option is enabled." />
             <Field label="Favicon URL" hint="Small icon shown in the browser tab">
               <input
@@ -179,6 +190,9 @@ export default function SettingsAdmin() {
         </Section>
 
         <Section title="About">
+          <Field label="Section subtitle">
+            <input value={form.aboutSectionSubtitle || ""} onChange={(e) => update("aboutSectionSubtitle", e.target.value)} className={inputClass} />
+          </Field>
           <Field label="Intro line">
             <textarea
               value={form.aboutIntro}
@@ -225,6 +239,39 @@ export default function SettingsAdmin() {
               rows={6}
             />
           </Field>
+        </Section>
+
+        <Section title="Home cards and section headings">
+          <div className="grid grid-cols-2 gap-4">
+            <Field label="Business card title"><input value={form.businessCardTitle || ""} onChange={(e) => update("businessCardTitle", e.target.value)} className={inputClass} /></Field>
+            <Field label="Collaboration card title"><input value={form.collaborationCardTitle || ""} onChange={(e) => update("collaborationCardTitle", e.target.value)} className={inputClass} /></Field>
+            <Field label="Business card link text"><input value={form.businessCardLink || ""} onChange={(e) => update("businessCardLink", e.target.value)} className={inputClass} /></Field>
+            <Field label="Collaboration card link text"><input value={form.collaborationCardLink || ""} onChange={(e) => update("collaborationCardLink", e.target.value)} className={inputClass} /></Field>
+            <Field label="Projects kicker"><input value={form.projectsKicker || ""} onChange={(e) => update("projectsKicker", e.target.value)} className={inputClass} /></Field>
+            <Field label="Projects heading"><input value={form.projectsHeading || ""} onChange={(e) => update("projectsHeading", e.target.value)} className={inputClass} /></Field>
+            <Field label="Skills kicker"><input value={form.skillsKicker || ""} onChange={(e) => update("skillsKicker", e.target.value)} className={inputClass} /></Field>
+            <Field label="Skills heading"><input value={form.skillsHeading || ""} onChange={(e) => update("skillsHeading", e.target.value)} className={inputClass} /></Field>
+          </div>
+          <Field label="Business card description"><textarea value={form.businessCardBody || ""} onChange={(e) => update("businessCardBody", e.target.value)} className={inputClass} rows={2} /></Field>
+          <Field label="Collaboration card description"><textarea value={form.collaborationCardBody || ""} onChange={(e) => update("collaborationCardBody", e.target.value)} className={inputClass} rows={2} /></Field>
+          <Field label="Projects intro"><textarea value={form.projectsIntro || ""} onChange={(e) => update("projectsIntro", e.target.value)} className={inputClass} rows={2} /></Field>
+          <Field label="Skills intro"><textarea value={form.skillsIntro || ""} onChange={(e) => update("skillsIntro", e.target.value)} className={inputClass} rows={2} /></Field>
+        </Section>
+
+        <Section title="Vision copy">
+          <Field label="Vision heading"><input value={form.visionHeading || ""} onChange={(e) => update("visionHeading", e.target.value)} className={inputClass} /></Field>
+          <div className="grid grid-cols-2 gap-4">
+            <Field label="AI Products title"><input value={form.visionProductsTitle || ""} onChange={(e) => update("visionProductsTitle", e.target.value)} className={inputClass} /></Field>
+            <Field label="Giving Back title"><input value={form.visionGrowthTitle || ""} onChange={(e) => update("visionGrowthTitle", e.target.value)} className={inputClass} /></Field>
+          </div>
+          <Field label="AI Products paragraphs (one per line)"><textarea value={(form.visionProductsBody || []).join("\n")} onChange={(e) => update("visionProductsBody", e.target.value.split("\n"))} className={inputClass} rows={3} /></Field>
+          <Field label="Giving Back paragraphs (one per line)"><textarea value={(form.visionGrowthBody || []).join("\n")} onChange={(e) => update("visionGrowthBody", e.target.value.split("\n"))} className={inputClass} rows={3} /></Field>
+        </Section>
+
+        <Section title="Contact copy">
+          <Field label="Contact heading"><input value={form.contactHeading || ""} onChange={(e) => update("contactHeading", e.target.value)} className={inputClass} /></Field>
+          <Field label="Contact description"><textarea value={form.contactBody || ""} onChange={(e) => update("contactBody", e.target.value)} className={inputClass} rows={2} /></Field>
+          <Field label="Contact button text"><input value={form.contactCta || ""} onChange={(e) => update("contactCta", e.target.value)} className={inputClass} /></Field>
         </Section>
 
         <Section title="Community">

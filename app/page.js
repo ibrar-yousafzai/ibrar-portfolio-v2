@@ -78,14 +78,14 @@ export default async function Home() {
           projectCount={projects.filter((p) => p.published).length}
           certCount={certifications.filter((c) => c.published).length}
           />
-          <Reveal><HomeRoutingBlock /></Reveal>
+          <Reveal><HomeRoutingBlock settings={settings} /></Reveal>
           <Reveal><RagDemo /></Reveal>
           <Reveal><About settings={settings} /></Reveal>
-          <Reveal><Vision /></Reveal>
+          <Reveal><Vision settings={settings} /></Reveal>
 
           <Reveal><EduExperience experiences={experiences} /></Reveal>
           <Reveal><Skills settings={settings} /></Reveal>
-          <Reveal><Projects projects={projects} /></Reveal>
+          <Reveal><Projects projects={projects} settings={settings} /></Reveal>
           <Reveal><Certifications certifications={certifications} visionStatement={settings.visionStatement} /></Reveal>
           <Reveal><Events events={events} /></Reveal>
           <Reveal><Announcements announcements={announcements} /></Reveal>
