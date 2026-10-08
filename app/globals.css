@@ -949,6 +949,21 @@ select:focus-visible {
   font-weight: 700;
 }
 
+.chat-link {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  overflow-wrap: anywhere;
+}
+
+.chat-link:hover {
+  color: var(--accent-2);
+}
+
+.chat-list-line {
+  padding-left: 0.45rem;
+}
+
 .chat-typing {
   display: inline-flex;
   align-items: center;

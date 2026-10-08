@@ -13,15 +13,44 @@ const suggestions = [
 ];
 
 function MessageText({ text }) {
+  const renderInline = (value, keyPrefix) => {
+    const parts = value.split(/(\*\*[^*]+\*\*|https?:\/\/[^\s<]+)/g);
+    return parts.map((part, index) => {
+      const key = `${keyPrefix}-${index}`;
+      if (part.startsWith("**") && part.endsWith("**")) {
+        return <strong key={key}>{part.slice(2, -2)}</strong>;
+      }
+      if (/^https?:\/\/[^\s<]+$/.test(part)) {
+        const cleanUrl = part.replace(/[),.;!?]+$/, "");
+        const trailing = part.slice(cleanUrl.length);
+        return (
+          <span key={key}>
+            <a href={cleanUrl} target="_blank" rel="noreferrer" className="chat-link">
+              {cleanUrl.replace(/^https?:\/\//, "").replace(/\/$/, "")}
+            </a>
+            {trailing}
+          </span>
+        );
+      }
+      return part;
+    });
+  };
+
   return (
-    <div className="chat-markdown whitespace-pre-wrap break-words">
-      {text.split(/(\*\*[^*]+\*\*)/g).map((part, index) => {
-        const isBold = part.startsWith("**") && part.endsWith("**");
-        return isBold ? <strong key={index}>{part.slice(2, -2)}</strong> : part;
-      })}
+    <div className="chat-markdown break-words">
+      {text.split("\n").map((line, index) => (
+        <div key={index} className={line.trim().startsWith("- ") ? "chat-list-line" : undefined}>
+          {renderInline(line, index)}
+        </div>
+      ))}
     </div>
   );
 }
+
+const CHAT_CONTEXT = `You are IY AI, the portfolio assistant for Ibrar Yousafzai.
+Answer clearly and accurately about Ibrar, his AI engineering, data science, RAG chatbots, agents, automation, projects, services, skills, experience, and ways to contact him.
+Ibrar builds RAG and AI assistants, websites and web apps, mobile/internal apps, custom software, SaaS products, automation, data pipelines, analytics, and machine-learning systems.
+If a question is outside Ibrar's portfolio or you do not have enough information, say so instead of inventing details. Keep answers concise and useful.`;
 
 export default function ChatWidget() {
   const [open, setOpen] = useState(false);
@@ -32,11 +61,16 @@ export default function ChatWidget() {
   const messagesRef = useRef(null);
   const messagesEndRef = useRef(null);
   const textareaRef = useRef(null);
+  const requestRef = useRef(null);
+  const requestIdRef = useRef(0);
 
   useEffect(() => {
     const handleOpen = () => setOpen(true);
     window.addEventListener("open-chat", handleOpen);
-    return () => window.removeEventListener("open-chat", handleOpen);
+    return () => {
+      window.removeEventListener("open-chat", handleOpen);
+      requestRef.current?.abort();
+    };
   }, []);
 
   useEffect(() => {
@@ -64,6 +98,10 @@ export default function ChatWidget() {
   }
 
   function startNewChat() {
+    requestRef.current?.abort();
+    requestRef.current = null;
+    requestIdRef.current += 1;
+    setTyping(false);
     setMessages([]);
     setInput("");
     setActiveTab("conversation");
@@ -78,6 +116,11 @@ export default function ChatWidget() {
     requestAnimationFrame(resizeTextarea);
     setOpen(true);
     setActiveTab("conversation");
+    requestRef.current?.abort();
+    const requestId = requestIdRef.current + 1;
+    requestIdRef.current = requestId;
+    const controller = new AbortController();
+    requestRef.current = controller;
     setMessages((current) => [...current, { role: "user", text: message }, { role: "bot", text: "" }]);
     setTyping(true);
 
@@ -85,7 +128,15 @@ export default function ChatWidget() {
       const response = await fetch(API_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message }),
+        body: JSON.stringify({
+          message,
+          context: CHAT_CONTEXT,
+          history: messages
+            .filter((item) => item.text)
+            .slice(-8)
+            .map((item) => ({ role: item.role === "bot" ? "assistant" : "user", content: item.text })),
+        }),
+        signal: controller.signal,
       });
       if (!response.ok || !response.body) throw new Error("The assistant is temporarily unavailable.");
 
@@ -103,6 +154,7 @@ export default function ChatWidget() {
           answer += chunk;
         }
         setMessages((current) => {
+          if (requestId !== requestIdRef.current) return current;
           const next = [...current];
           next[next.length - 1] = { role: "bot", text: answer };
           return next;
@@ -123,13 +175,17 @@ export default function ChatWidget() {
       if (buffer.trim().startsWith("data:")) appendChunk(buffer.trim().slice(5).trim());
       if (!answer) throw new Error("The assistant returned an empty response.");
     } catch (error) {
+      if (error.name === "AbortError" || requestId !== requestIdRef.current) return;
       setMessages((current) => {
         const next = [...current];
         next[next.length - 1] = { role: "bot", text: error.message || "Something went wrong." };
         return next;
       });
     } finally {
-      setTyping(false);
+      if (requestId === requestIdRef.current) {
+        setTyping(false);
+        requestRef.current = null;
+      }
     }
   }
 
@@ -169,10 +225,10 @@ export default function ChatWidget() {
 
           <div className="flex shrink-0 items-center justify-between border-b border-border px-3 py-2">
             <div className="flex gap-1" role="tablist" aria-label="Chat views">
-              <button type="button" role="tab" aria-selected={activeTab === "discover"} onClick={() => setActiveTab("discover")} className={`rounded-md px-3 py-1.5 text-xs font-medium transition ${activeTab === "discover" ? "bg-panel-2 text-text" : "text-text-muted hover:text-text"}`}>
+              <button id="chat-tab-discover" type="button" role="tab" aria-selected={activeTab === "discover"} aria-controls="chat-discover-panel" onClick={() => setActiveTab("discover")} className={`rounded-md px-3 py-1.5 text-xs font-medium transition ${activeTab === "discover" ? "bg-panel-2 text-text" : "text-text-muted hover:text-text"}`}>
                 Discover
               </button>
-              <button type="button" role="tab" aria-selected={activeTab === "conversation"} onClick={() => setActiveTab("conversation")} className={`rounded-md px-3 py-1.5 text-xs font-medium transition ${activeTab === "conversation" ? "bg-panel-2 text-text" : "text-text-muted hover:text-text"}`}>
+              <button id="chat-tab-conversation" type="button" role="tab" aria-selected={activeTab === "conversation"} aria-controls="chat-conversation-panel" onClick={() => setActiveTab("conversation")} className={`rounded-md px-3 py-1.5 text-xs font-medium transition ${activeTab === "conversation" ? "bg-panel-2 text-text" : "text-text-muted hover:text-text"}`}>
                 Conversation
               </button>
             </div>
@@ -180,7 +236,7 @@ export default function ChatWidget() {
           </div>
 
           {activeTab === "discover" ? (
-            <div className="chat-scroll min-h-0 flex-1 overflow-y-auto px-4 py-5 text-sm">
+            <div id="chat-discover-panel" role="tabpanel" aria-labelledby="chat-tab-discover" className="chat-scroll min-h-0 flex-1 overflow-y-auto px-4 py-5 text-sm">
               <p className="font-display text-lg font-semibold text-text">Hi there 👋</p>
               <p className="mt-1 text-text-muted">Ask about Ibrar&apos;s projects, skills, or experience.</p>
               <div className="mt-5 grid gap-2">
@@ -190,7 +246,7 @@ export default function ChatWidget() {
               </div>
             </div>
           ) : (
-            <div ref={messagesRef} className="chat-scroll min-h-0 flex-1 space-y-3 overflow-y-auto px-4 py-5 text-sm">
+            <div id="chat-conversation-panel" role="tabpanel" aria-labelledby="chat-tab-conversation" ref={messagesRef} className="chat-scroll min-h-0 flex-1 space-y-3 overflow-y-auto px-4 py-5 text-sm">
               {messages.length === 0 ? (
                 <div className="py-8 text-center">
                   <p className="font-display text-lg font-semibold">Hi there 👋</p>
