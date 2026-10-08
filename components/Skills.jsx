@@ -14,7 +14,7 @@ export default function Skills({ settings }) {
 
         <div className="skills-showcase">
           {settings.skills?.map((group, i) => (
-            <Reveal key={i} delay={i * 80}>
+            <Reveal key={i} delay={i * 80} className="skill-grid-item">
               <div className="skill-card">
               <div className="skill-card-top"><span>{String(i + 1).padStart(2, "0")}</span><h3>{group.category}</h3></div>
               <div className="skill-meter"><span style={{ width: `${Math.min(92, 48 + (group.items?.length || 0) * 8)}%` }} /></div>

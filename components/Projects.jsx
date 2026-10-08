@@ -21,7 +21,7 @@ export default function Projects({ projects }) {
         ) : (
           <div className="projects-grid">
             {visible.map((p, i) => (
-              <Reveal key={p._id} delay={i * 80}>
+              <Reveal key={p._id} delay={i * 80} className="project-grid-item">
                 <article className="project-card">
                 <div className="project-card-media">
                   {p.imageUrl ? <img src={p.imageUrl} alt="" /> : <span>{String(i + 1).padStart(2, "0")}</span>}

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Bot, BriefcaseBusiness, Eye, Globe, GraduationCap, Home, Mail, MessageCircle, User } from "lucide-react";
+import { Bot, BriefcaseBusiness, Eye, GraduationCap, Home, Mail, MessageCircle, User } from "lucide-react";
 
 const ITEMS = [
   { id: "hero", label: "Home", href: "/#hero", Icon: Home },
@@ -42,12 +42,12 @@ export default function Sidebar({ settings }) {
   }, []);
 
   const socials = [
-    { label: "WhatsApp", href: profile.whatsappUrl, Icon: MessageCircle },
-    { label: "LinkedIn", href: profile.linkedinUrl, Icon: Globe },
-    { label: "GitHub", href: profile.githubUrl, Icon: Globe },
-    { label: "Kaggle", href: profile.kaggleUrl, Icon: BriefcaseBusiness },
-    { label: "Facebook", href: profile.facebookUrl, Icon: Globe },
-    { label: "Instagram", href: profile.instagramUrl, Icon: Globe },
+    { label: "WhatsApp", href: profile.whatsappUrl, mark: "wa" },
+    { label: "LinkedIn", href: profile.linkedinUrl, mark: "in" },
+    { label: "GitHub", href: profile.githubUrl, mark: "gh" },
+    { label: "Kaggle", href: profile.kaggleUrl, mark: "kg" },
+    { label: "Facebook", href: profile.facebookUrl, mark: "f" },
+    { label: "Instagram", href: profile.instagramUrl, mark: "ig" },
   ].filter((link) => link.href);
 
   return (
@@ -90,9 +90,9 @@ export default function Sidebar({ settings }) {
         </div>
         {socials.length ? (
           <div className="site-rail-social">
-            {socials.map(({ label, href, Icon }) => (
+            {socials.map(({ label, href, mark }) => (
               <a key={label} href={href} title={label} target="_blank" rel="noreferrer">
-                <Icon size={15} aria-hidden="true" />
+                <span className="site-social-mark" aria-hidden="true">{mark}</span>
                 <span className="sr-only">{label}</span>
               </a>
             ))}
