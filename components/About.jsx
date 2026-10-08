@@ -1,38 +1,42 @@
 export default function About({ settings }) {
   return (
     <section id="about" className="border-b border-border">
-      <div className="mx-auto max-w-6xl px-6 py-14">
-        <p className="font-mono-tag text-xs uppercase tracking-[0.2em] text-accent">Introduction</p>
-        <h2 className="mt-3 text-3xl font-semibold tracking-tight md:text-4xl">About Me</h2>
+      <div className="section-shell">
+        <div className="section-heading">
+          <p className="section-kicker">Introduction</p>
+          <h2>About {settings.name?.split(" ")[0] || "Me"}</h2>
+          <p>From student builder to AI service provider</p>
+        </div>
 
-        <div className="mt-8 grid gap-10 md:grid-cols-2">
-          <div className="space-y-4 text-text-muted">
-            <p className="text-lg text-text">{settings.aboutIntro}</p>
-            <p>{settings.aboutBody}</p>
-            {settings.communityName ? (
-              <p>
-                I also lead <span className="text-text">{settings.communityName}</span>, a community
-                initiative around learning, collaboration, and opportunity.
-              </p>
-            ) : null}
+        <div className="about-grid">
+          <div className="about-photo-wrap">
+            <div className="about-photo-shape" aria-hidden="true" />
+            {settings.avatarUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={settings.avatarUrl} alt={settings.name} className="about-photo" />
+            ) : (
+              <div className="about-photo about-photo-fallback">IY</div>
+            )}
           </div>
 
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div className="rounded-lg border border-border bg-panel p-5 transition duration-150 hover:border-accent">
-              <h3 className="font-display text-sm font-semibold text-accent">How I work</h3>
-              <ul className="mt-3 space-y-2 text-sm text-text-muted">
-                {settings.howIWork?.map((item, i) => (
-                  <li key={i}>— {item}</li>
-                ))}
-              </ul>
-            </div>
-            <div className="rounded-lg border border-border bg-panel p-5 transition duration-150 hover:border-accent-2">
-              <h3 className="font-display text-sm font-semibold text-accent-2">Open to</h3>
-              <ul className="mt-3 space-y-2 text-sm text-text-muted">
-                {settings.openTo?.map((item, i) => (
-                  <li key={i}>— {item}</li>
-                ))}
-              </ul>
+          <div className="about-copy">
+            <h3>{settings.aboutIntro || "Building AI that solves real business problems"}</h3>
+            {settings.aboutBody ? <p>{settings.aboutBody}</p> : null}
+            {settings.communityName ? (
+              <p>
+                I also lead <strong>{settings.communityName}</strong>, a community initiative around learning,
+                collaboration, and opportunity.
+              </p>
+            ) : null}
+            <div className="about-panels">
+              <div>
+                <h4>How I work</h4>
+                <ul>{settings.howIWork?.map((item, i) => <li key={i}>— {item}</li>)}</ul>
+              </div>
+              <div>
+                <h4>Open to</h4>
+                <ul>{settings.openTo?.map((item, i) => <li key={i}>— {item}</li>)}</ul>
+              </div>
             </div>
           </div>
         </div>

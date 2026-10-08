@@ -2,13 +2,14 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Bot, BriefcaseBusiness, GraduationCap, Home, Mail, User } from "lucide-react";
+import { Bot, BriefcaseBusiness, Eye, GraduationCap, Home, Mail, User } from "lucide-react";
 
 const ITEMS = [
   { id: "hero", label: "Home", href: "/#hero", Icon: Home },
-  { id: "demo", label: "RAG Services", href: "/rag", Icon: Bot },
-  { id: "projects", label: "Work", href: "/#projects", Icon: BriefcaseBusiness },
   { id: "about", label: "About", href: "/#about", Icon: User },
+  { id: "vision", label: "Vision", href: "/#vision", Icon: Eye },
+  { id: "projects", label: "Work", href: "/#projects", Icon: BriefcaseBusiness },
+  { id: "demo", label: "RAG Services", href: "/rag", Icon: Bot },
   { id: "experience", label: "Education & Experience", href: "/#experience", Icon: GraduationCap },
   { id: "contact", label: "Contact", href: "/#contact", Icon: Mail },
 ];

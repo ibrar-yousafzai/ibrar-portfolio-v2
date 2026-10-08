@@ -12,6 +12,7 @@ import Reveal from "@/components/Reveal";
 import HomeRoutingBlock from "@/components/HomeRoutingBlock";
 import RagDemo from "@/components/rag/RagDemo";
 import About from "@/components/About";
+import Vision from "@/components/Vision";
 import EduExperience from "@/components/home/EduExperience";
 import Sidebar from "@/components/layout/Sidebar";
 import ChatPill from "@/components/home/ChatPill";
@@ -71,6 +72,7 @@ export default async function Home() {
           <Reveal><HomeRoutingBlock /></Reveal>
           <Reveal><RagDemo /></Reveal>
           <Reveal><About settings={settings} /></Reveal>
+          <Reveal><Vision /></Reveal>
 
           <Reveal><EduExperience experiences={experiences} /></Reveal>
           <Reveal><Skills settings={settings} /></Reveal>
