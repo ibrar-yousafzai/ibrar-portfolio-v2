@@ -8,6 +8,7 @@ const ITEMS = [
   { id: "hero", label: "Home", href: "/#hero", Icon: Home },
   { id: "about", label: "About", href: "/#about", Icon: User },
   { id: "vision", label: "Vision", href: "/#vision", Icon: Eye },
+  { id: "services", label: "Services", href: "/#services", Icon: BriefcaseBusiness },
   { id: "projects", label: "Work", href: "/#projects", Icon: BriefcaseBusiness },
   { id: "demo", label: "RAG Services", href: "/rag", Icon: Bot },
   { id: "experience", label: "Education & Experience", href: "/#experience", Icon: GraduationCap },

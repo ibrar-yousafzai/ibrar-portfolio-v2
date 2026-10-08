@@ -8,6 +8,16 @@ const SkillGroupSchema = new mongoose.Schema(
   { _id: false }
 );
 
+const ServiceSchema = new mongoose.Schema(
+  {
+    name: { type: String, required: true },
+    description: { type: String, default: "" },
+    label: { type: String, default: "Service" },
+    featured: { type: Boolean, default: false },
+  },
+  { _id: false }
+);
+
 const SiteSettingsSchema = new mongoose.Schema(
   {
     key: { type: String, default: "main", unique: true },
@@ -47,6 +57,10 @@ const SiteSettingsSchema = new mongoose.Schema(
 
     // Skills
     skills: { type: [SkillGroupSchema], default: [] },
+    services: { type: [ServiceSchema], default: [] },
+    servicesKicker: { type: String, default: "What I can build" },
+    servicesHeading: { type: String, default: "Services for your next digital product" },
+    servicesIntro: { type: String, default: "From an AI assistant to a complete SaaS product, I help turn useful ideas into working software." },
 
     // Community
     communityName: { type: String, default: "Khyber Future Hub" },

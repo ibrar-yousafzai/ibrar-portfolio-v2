@@ -17,6 +17,7 @@ import EduExperience from "@/components/home/EduExperience";
 import Sidebar from "@/components/layout/Sidebar";
 import ChatPill from "@/components/home/ChatPill";
 import Skills from "@/components/Skills";
+import Services from "@/components/Services";
 import Projects from "@/components/Projects";
 import Certifications from "@/components/Certifications";
 import Events from "@/components/Events";
@@ -82,6 +83,7 @@ export default async function Home() {
           <Reveal><RagDemo /></Reveal>
           <Reveal><About settings={settings} /></Reveal>
           <Reveal><Vision settings={settings} /></Reveal>
+          <Reveal><Services settings={settings} /></Reveal>
 
           <Reveal><EduExperience experiences={experiences} /></Reveal>
           <Reveal><Skills settings={settings} /></Reveal>

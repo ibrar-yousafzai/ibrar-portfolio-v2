@@ -66,9 +66,28 @@ function textToSkills(text) {
     });
 }
 
+function servicesToText(services) {
+  return (services || [])
+    .map((service) => `${service.name} | ${service.label || "Service"} | ${service.description || ""}`)
+    .join("\n");
+}
+
+function textToServices(text) {
+  return text
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line) => {
+      const [name = "", label = "Service", description = ""] = line.split("|").map((value) => value.trim());
+      return { name, label, description };
+    })
+    .filter((service) => service.name);
+}
+
 export default function SettingsAdmin() {
   const [form, setForm] = useState(null);
   const [skillsText, setSkillsText] = useState("");
+  const [servicesText, setServicesText] = useState("");
   const [howIWorkText, setHowIWorkText] = useState("");
   const [openToText, setOpenToText] = useState("");
   const [saving, setSaving] = useState(false);
@@ -81,6 +100,7 @@ export default function SettingsAdmin() {
       .then((data) => {
         setForm(data);
         setSkillsText(skillsToText(data.skills));
+        setServicesText(servicesToText(data.services));
         setHowIWorkText((data.howIWork || []).join("\n"));
         setOpenToText((data.openTo || []).join("\n"));
       });
@@ -98,6 +118,7 @@ export default function SettingsAdmin() {
     const payload = {
       ...form,
       skills: textToSkills(skillsText),
+      services: textToServices(servicesText),
       howIWork: howIWorkText.split("\n").map((s) => s.trim()).filter(Boolean),
       openTo: openToText.split("\n").map((s) => s.trim()).filter(Boolean),
     };
@@ -261,6 +282,31 @@ export default function SettingsAdmin() {
               className={inputClass}
               rows={6}
             />
+          </Field>
+        </Section>
+
+        <Section title="Services">
+          <Field
+            label="One service per line: Name | Label | Description"
+            hint='Example: "RAG & AI Assistants | AI systems | Knowledge-grounded assistants for your business data."'
+          >
+            <textarea
+              value={servicesText}
+              onChange={(e) => setServicesText(e.target.value)}
+              className={inputClass}
+              rows={8}
+            />
+          </Field>
+          <div className="grid grid-cols-2 gap-4">
+            <Field label="Services kicker">
+              <input value={form.servicesKicker || ""} onChange={(e) => update("servicesKicker", e.target.value)} className={inputClass} />
+            </Field>
+            <Field label="Services heading">
+              <input value={form.servicesHeading || ""} onChange={(e) => update("servicesHeading", e.target.value)} className={inputClass} />
+            </Field>
+          </div>
+          <Field label="Services introduction">
+            <textarea value={form.servicesIntro || ""} onChange={(e) => update("servicesIntro", e.target.value)} className={inputClass} rows={2} />
           </Field>
         </Section>
 
