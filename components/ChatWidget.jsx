@@ -34,6 +34,16 @@ export default function ChatWidget() {
   const textareaRef = useRef(null);
 
   useEffect(() => {
+    const handleOpen = () => setOpen(true);
+    window.addEventListener("open-chat", handleOpen);
+    return () => window.removeEventListener("open-chat", handleOpen);
+  }, []);
+
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent("chat-state", { detail: { open } }));
+  }, [open]);
+
+  useEffect(() => {
     if (open && window.matchMedia("(max-width: 639px)").matches) {
       document.body.classList.add("chat-open");
       return () => document.body.classList.remove("chat-open");
@@ -206,9 +216,6 @@ export default function ChatWidget() {
         </section>
       ) : null}
 
-      <button type="button" onClick={() => setOpen((current) => !current)} className="flex h-12 w-12 items-center justify-center rounded-full bg-accent text-xl font-semibold text-[#04140f] shadow-lg transition hover:scale-105" aria-label={open ? "Minimize IY AI chat" : "Open IY AI chat"}>
-        <span aria-hidden="true">💬</span>
-      </button>
     </div>
   );
 }

@@ -7,13 +7,14 @@ import Event from "@/models/Event";
 import ExperienceModel from "@/models/Experience";
 import Announcement from "@/models/Announcement";
 
-import NavBar from "@/components/NavBar";
 import Hero from "@/components/Hero";
 import Reveal from "@/components/Reveal";
 import HomeRoutingBlock from "@/components/HomeRoutingBlock";
 import RagDemo from "@/components/rag/RagDemo";
 import About from "@/components/About";
-import ExperienceSection from "@/components/Experience";
+import EduExperience from "@/components/home/EduExperience";
+import Sidebar from "@/components/layout/Sidebar";
+import ChatPill from "@/components/home/ChatPill";
 import Skills from "@/components/Skills";
 import Projects from "@/components/Projects";
 import Certifications from "@/components/Certifications";
@@ -59,28 +60,31 @@ export default async function Home() {
 
   return (
     <>
-      <NavBar name={settings.name} />
-      <main className="flex-1">
-                <Hero
+      <Sidebar settings={settings} />
+      <div className="site-main">
+        <main className="flex-1">
+          <Hero
           settings={settings}
           projectCount={projects.filter((p) => p.published).length}
           certCount={certifications.filter((c) => c.published).length}
-        />
-        <Reveal><HomeRoutingBlock /></Reveal>
-        <Reveal><RagDemo /></Reveal>
-        <Reveal><About settings={settings} /></Reveal>
+          />
+          <Reveal><HomeRoutingBlock /></Reveal>
+          <Reveal><RagDemo /></Reveal>
+          <Reveal><About settings={settings} /></Reveal>
 
-        <Reveal><ExperienceSection experiences={experiences} /></Reveal>
-        <Reveal><Skills settings={settings} /></Reveal>
-        <Reveal><Projects projects={projects} /></Reveal>
-        <Reveal><Certifications certifications={certifications} visionStatement={settings.visionStatement} /></Reveal>
-        <Reveal><Events events={events} /></Reveal>
-        <Reveal><Announcements announcements={announcements} /></Reveal>
-        <Reveal><VisitorCounter /></Reveal>
-        <Reveal><Community communities={communities} /></Reveal>
-        <Reveal><Contact settings={settings} /></Reveal>
-      </main>
-      <Footer settings={settings} />
+          <Reveal><EduExperience experiences={experiences} /></Reveal>
+          <Reveal><Skills settings={settings} /></Reveal>
+          <Reveal><Projects projects={projects} /></Reveal>
+          <Reveal><Certifications certifications={certifications} visionStatement={settings.visionStatement} /></Reveal>
+          <Reveal><Events events={events} /></Reveal>
+          <Reveal><Announcements announcements={announcements} /></Reveal>
+          <Reveal><VisitorCounter /></Reveal>
+          <Reveal><Community communities={communities} /></Reveal>
+          <Reveal><Contact settings={settings} /></Reveal>
+        </main>
+        <Footer settings={settings} />
+      </div>
+      <ChatPill />
     </>
   );
 }
