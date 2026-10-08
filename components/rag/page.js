@@ -6,9 +6,10 @@ import FaqItem from "@/models/FaqItem";
 import CaseStudy from "@/models/CaseStudy";
 import { brand, resolveSiteUrl } from "@/lib/brand";
 
-import NavBar from "@/components/NavBar";
 import Footer from "@/components/Footer";
 import Reveal from "@/components/Reveal";
+import Sidebar from "@/components/layout/Sidebar";
+import ChatPill from "@/components/home/ChatPill";
 import RagHero from "@/components/rag/RagHero";
 import RagDemo from "@/components/rag/RagDemo";
 import RagTypes from "@/components/rag/RagTypes";
@@ -107,25 +108,27 @@ export default async function RagPage() {
 
   return (
     <>
-      {/* eslint-disable-next-line react/no-danger */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <NavBar name={settings?.name || brand.personName} />
-      <main className="flex-1">
-        <Reveal><RagHero /></Reveal>
-        <Reveal><RagDemo /></Reveal>
-        <Reveal><RagTypes ragTypes={ragTypes} /></Reveal>
-        <Reveal><Packages packages={packages} /></Reveal>
-        <Reveal><FitSelector ragTypes={ragTypes} packages={packages} /></Reveal>
-        <Reveal><SavingsEstimator /></Reveal>
-        <Reveal><CaseStudies caseStudies={caseStudies} /></Reveal>
-        <Reveal><Industries /></Reveal>
-        <Reveal><RagFaq faqItems={faqItems} /></Reveal>
-        <Reveal><RagContactCta /></Reveal>
-      </main>
-      <Footer settings={settings} />
+      <Sidebar settings={settings || { name: brand.personName }} />
+      <div className="site-main">
+        <main className="flex-1">
+          <Reveal><RagHero /></Reveal>
+          <Reveal><RagDemo /></Reveal>
+          <Reveal><RagTypes ragTypes={ragTypes} /></Reveal>
+          <Reveal><Packages packages={packages} /></Reveal>
+          <Reveal><FitSelector ragTypes={ragTypes} packages={packages} /></Reveal>
+          <Reveal><SavingsEstimator /></Reveal>
+          <Reveal><CaseStudies caseStudies={caseStudies} /></Reveal>
+          <Reveal><Industries /></Reveal>
+          <Reveal><RagFaq faqItems={faqItems} /></Reveal>
+          <Reveal><RagContactCta /></Reveal>
+        </main>
+        <Footer settings={settings} />
+      </div>
+      <ChatPill />
     </>
   );
 }

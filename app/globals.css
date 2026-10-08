@@ -236,6 +236,29 @@ body {
   font-size: clamp(1.05rem, 2vw, 1.35rem);
 }
 
+.rag-hero {
+  isolation: isolate;
+}
+
+.rag-hero::before {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  content: "";
+  background:
+    radial-gradient(circle at 72% 38%, rgb(53 208 192 / 12%), transparent 32%),
+    linear-gradient(135deg, transparent 0 55%, rgb(20 29 51 / 55%) 100%);
+}
+
+.rag-conversation {
+  transition: border-color 0.2s ease, transform 0.2s ease;
+}
+
+.rag-conversation:hover {
+  border-color: color-mix(in srgb, var(--accent) 70%, var(--border));
+  transform: translateY(-2px);
+}
+
 .experience-tabs {
   display: flex;
   max-width: 560px;

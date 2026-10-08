@@ -37,12 +37,12 @@ export default function RagContactCta() {
 
   return (
     <section id="contact-rag" className="border-b border-border">
-      <div className="mx-auto max-w-2xl px-6 py-14">
+      <div className="mx-auto max-w-3xl px-6 py-20">
         <h2 className="text-3xl font-semibold tracking-tight md:text-4xl">
           Book a free call
         </h2>
         <p className="mt-4 text-text-muted">
-          Tell me what your customers keep asking — I'll reply with how this could work for you.
+          Tell me what your customers keep asking — I&apos;ll reply with how this could work for you.
         </p>
 
         {status === "success" ? (
@@ -50,7 +50,7 @@ export default function RagContactCta() {
             {feedback}
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="mt-8 space-y-4">
+          <form onSubmit={handleSubmit} className="mt-8 max-w-xl space-y-4">
             <input
               required
               placeholder="Your name"

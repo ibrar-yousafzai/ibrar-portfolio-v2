@@ -2,17 +2,17 @@ import MagneticButton from "../MagneticButton";
 
 export default function RagHero() {
   return (
-    <section className="relative overflow-hidden border-b border-border">
-      <div className="mx-auto grid max-w-6xl items-start gap-10 px-6 py-12 md:grid-cols-2 md:py-16">
+    <section className="rag-hero relative overflow-hidden border-b border-border">
+      <div className="mx-auto grid max-w-6xl items-center gap-10 px-6 py-16 md:grid-cols-[1.05fr_0.95fr] md:py-24">
         <div>
           <span className="font-mono-tag inline-flex items-center gap-2 rounded-full border border-accent/40 bg-accent/10 px-3 py-1 text-xs uppercase tracking-wide text-accent">
             <span className="h-1.5 w-1.5 rounded-full bg-accent" /> AI Support Assistants
           </span>
-          <h1 className="mt-5 text-4xl font-semibold leading-tight tracking-tight md:text-5xl">
+          <h1 className="mt-5 text-4xl font-semibold leading-[1.08] tracking-tight md:text-6xl">
             AI assistants that answer your customers from{" "}
             <span className="text-accent">your own data</span>
           </h1>
-          <p className="mt-5 max-w-lg text-text-muted">
+          <p className="mt-5 max-w-xl text-base leading-7 text-text-muted md:text-lg">
             Trained on your docs, policies, and catalog — live in days, every answer shows its
             source, and tricky questions hand off to your team.
           </p>
@@ -33,7 +33,7 @@ export default function RagHero() {
               Try the live demo
             </a>
           </div>
-          <ul className="mt-8 flex flex-wrap gap-x-6 gap-y-2 text-xs text-text-muted">
+          <ul className="mt-8 flex flex-wrap gap-x-6 gap-y-2 font-mono-tag text-xs text-text-muted">
             <li>Live in days, not months</li>
             <li>Every answer shows its source</li>
             <li>Hands tricky chats to your team</li>
@@ -42,7 +42,7 @@ export default function RagHero() {
 
         <div className="relative">
           <div className="pointer-events-none absolute -inset-12 rounded-full bg-accent/10 blur-3xl motion-reduce:hidden" />
-          <div className="relative rounded-2xl border border-border bg-panel p-5 shadow-[0_0_60px_-20px_var(--accent)]">
+          <div className="rag-conversation relative rounded-2xl border border-border bg-panel p-5 shadow-[0_0_60px_-20px_var(--accent)]">
             <p className="font-mono-tag text-[10px] uppercase tracking-wide text-text-muted">
               Sample conversation
             </p>
