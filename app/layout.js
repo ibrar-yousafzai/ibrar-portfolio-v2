@@ -2,6 +2,7 @@ import { Space_Grotesk, Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { connectDB } from "@/lib/mongodb";
 import SiteSettings from "@/models/SiteSettings";
+import ScrollProgress from "@/components/ScrollProgress";
 import ChatWidget from "@/components/ChatWidget";
 
 const spaceGrotesk = Space_Grotesk({
@@ -9,11 +10,13 @@ const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
   weight: ["500", "600", "700"],
 });
+
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
   weight: ["400", "500", "600"],
 });
+
 const jetbrainsMono = JetBrains_Mono({
   variable: "--font-jetbrains-mono",
   subsets: ["latin"],
@@ -29,20 +32,13 @@ export async function generateMetadata() {
       description:
         settings?.metaDescription ||
         "Entry-level Data Scientist and AI/ML engineer building practical, explainable machine learning work.",
-      icons: {
-        icon: "/icon.png",
-        apple: "/icon.png",
-      },
+      icons: settings?.faviconUrl ? { icon: settings.faviconUrl } : undefined,
     };
   } catch {
     return {
       title: "Ibrar Yousafzai — Data Scientist | AI & ML",
       description:
         "Entry-level Data Scientist and AI/ML engineer building practical, explainable machine learning work.",
-      icons: {
-        icon: "/icon.png",
-        apple: "/icon.png",
-      },
     };
   }
 }
@@ -54,6 +50,7 @@ export default function RootLayout({ children }) {
       className={`${spaceGrotesk.variable} ${inter.variable} ${jetbrainsMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-bg text-text">
+        <ScrollProgress />
         {children}
         <ChatWidget />
       </body>

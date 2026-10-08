@@ -10,7 +10,6 @@ const ProjectSchema = new mongoose.Schema(
     tags: { type: [String], default: [] }, // e.g. ["Python", "Regression", "EDA"]
     outcome: { type: String, default: "" }, // real metric/result line
     imageUrl: { type: String, default: "" },
-    demoImages: { type: [String], default: [] },
     caseStudyUrl: { type: String, default: "" },
     order: { type: Number, default: 0 },
     published: { type: Boolean, default: true },

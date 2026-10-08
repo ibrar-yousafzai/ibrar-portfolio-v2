@@ -1,7 +1,7 @@
 export default function About({ settings }) {
   return (
     <section id="about" className="border-b border-border">
-      <div className="mx-auto max-w-6xl px-6 py-20">
+      <div className="mx-auto max-w-6xl px-6 py-14">
         <p className="font-mono-tag text-xs uppercase tracking-[0.2em] text-accent">Introduction</p>
         <h2 className="mt-3 text-3xl font-semibold tracking-tight md:text-4xl">About Me</h2>
 
@@ -18,7 +18,7 @@ export default function About({ settings }) {
           </div>
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div className="rounded-lg border border-border bg-panel p-5">
+            <div className="rounded-lg border border-border bg-panel p-5 transition duration-150 hover:border-accent">
               <h3 className="font-display text-sm font-semibold text-accent">How I work</h3>
               <ul className="mt-3 space-y-2 text-sm text-text-muted">
                 {settings.howIWork?.map((item, i) => (
@@ -26,7 +26,7 @@ export default function About({ settings }) {
                 ))}
               </ul>
             </div>
-            <div className="rounded-lg border border-border bg-panel p-5">
+            <div className="rounded-lg border border-border bg-panel p-5 transition duration-150 hover:border-accent-2">
               <h3 className="font-display text-sm font-semibold text-accent-2">Open to</h3>
               <ul className="mt-3 space-y-2 text-sm text-text-muted">
                 {settings.openTo?.map((item, i) => (

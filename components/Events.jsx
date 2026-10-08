@@ -1,9 +1,11 @@
+import Reveal from "./Reveal";
+
 export default function Events({ events }) {
   const visible = events.filter((e) => e.published);
 
   return (
     <section id="events" className="border-b border-border">
-      <div className="mx-auto max-w-6xl px-6 py-20">
+      <div className="mx-auto max-w-6xl px-6 py-14">
         <p className="font-mono-tag text-xs uppercase tracking-[0.2em] text-accent">Events</p>
         <h2 className="mt-3 text-3xl font-semibold tracking-tight md:text-4xl">
           Event Attempts &amp; Certificates
@@ -18,8 +20,9 @@ export default function Events({ events }) {
           </p>
         ) : (
           <div className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {visible.map((e) => (
-              <article key={e._id} className="rounded-lg border border-border bg-panel p-5">
+            {visible.map((e, i) => (
+              <Reveal key={e._id} delay={i * 80}>
+                <article className="rounded-lg border border-border bg-panel p-5 transition duration-150 hover:border-accent">
                 {e.certificateImageUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
@@ -46,7 +49,8 @@ export default function Events({ events }) {
                     ))}
                   </div>
                 ) : null}
-              </article>
+                </article>
+              </Reveal>
             ))}
           </div>
         )}

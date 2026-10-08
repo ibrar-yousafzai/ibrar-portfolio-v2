@@ -2,7 +2,19 @@ import { NextResponse } from "next/server";
 import { verifySession, SESSION_COOKIE } from "@/lib/auth";
 
 const PROTECTED_PAGE_PREFIX = "/admin/dashboard";
-const PROTECTED_API_PREFIXES = ["/api/projects", "/api/certifications", "/api/events", "/api/content", "/api/visitors/reset"];
+const PROTECTED_API_PREFIXES = [
+  "/api/projects",
+  "/api/certifications",
+  "/api/events",
+  "/api/content",
+  "/api/experiences",
+  "/api/announcements",
+  "/api/visitors/reset",
+  "/api/rag-types",
+  "/api/packages",
+  "/api/faq-items",
+  "/api/case-studies",
+];
 const WRITE_METHODS = ["POST", "PUT", "PATCH", "DELETE"];
 
 export async function proxy(req) {
@@ -28,5 +40,17 @@ export async function proxy(req) {
 }
 
 export const config = {
-  matcher: ["/admin/dashboard/:path*", "/api/projects/:path*", "/api/certifications/:path*", "/api/events/:path*", "/api/content/:path*"],
+  matcher: [
+    "/admin/dashboard/:path*",
+    "/api/projects/:path*",
+    "/api/certifications/:path*",
+    "/api/events/:path*",
+    "/api/content/:path*",
+    "/api/experiences/:path*",
+    "/api/announcements/:path*",
+    "/api/rag-types/:path*",
+    "/api/packages/:path*",
+    "/api/faq-items/:path*",
+    "/api/case-studies/:path*",
+  ],
 };

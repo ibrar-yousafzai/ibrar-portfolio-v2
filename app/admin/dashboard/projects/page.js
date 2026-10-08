@@ -12,7 +12,6 @@ const EMPTY = {
   tags: "",
   outcome: "",
   imageUrl: "",
-  demoImages: [""],
   caseStudyUrl: "",
   order: 0,
   published: true,
@@ -36,12 +35,10 @@ export default function ProjectsAdmin() {
   }, []);
 
   function startEdit(p) {
-    const demoImages = Array.isArray(p.demoImages) && p.demoImages.length > 0 ? p.demoImages : [p.imageUrl || ""];
     setEditingId(p._id);
     setForm({
       ...p,
       tags: (p.tags || []).join(", "),
-      demoImages,
     });
   }
 
@@ -50,30 +47,10 @@ export default function ProjectsAdmin() {
     setForm(EMPTY);
   }
 
-  function updateDemoImage(index, value) {
-    setForm((current) => {
-      const nextImages = [...(current.demoImages || [])];
-      nextImages[index] = value;
-      return { ...current, demoImages: nextImages };
-    });
-  }
-
-  function addDemoImage() {
-    setForm((current) => ({ ...current, demoImages: [...(current.demoImages || []), ""] }));
-  }
-
-  function removeDemoImage(index) {
-    setForm((current) => {
-      const nextImages = (current.demoImages || []).filter((_, currentIndex) => currentIndex !== index);
-      return { ...current, demoImages: nextImages.length ? nextImages : [""] };
-    });
-  }
-
   async function handleSubmit(e) {
     e.preventDefault();
     setSaving(true);
     setError("");
-    const demoImages = (form.demoImages || []).map((image) => image.trim()).filter(Boolean);
     const payload = {
       ...form,
       order: Number(form.order) || 0,
@@ -81,8 +58,6 @@ export default function ProjectsAdmin() {
         .split(",")
         .map((t) => t.trim())
         .filter(Boolean),
-      imageUrl: demoImages[0] || "",
-      demoImages,
     };
     try {
       const res = await fetch(editingId ? `/api/projects/${editingId}` : "/api/projects", {
@@ -124,9 +99,6 @@ export default function ProjectsAdmin() {
                     <p className="font-display font-semibold text-text">{p.title}</p>
                     <p className="text-xs text-text-muted">
                       {p.category} · {p.status} · {p.published ? "Published" : "Hidden"}
-                    </p>
-                    <p className="mt-1 text-[11px] text-text-muted">
-                      Demo images: {(p.demoImages?.length || (p.imageUrl ? 1 : 0))}
                     </p>
                   </div>
                   <div className="flex shrink-0 gap-2">
@@ -219,40 +191,13 @@ export default function ProjectsAdmin() {
                 className={inputClass}
               />
             </Field>
-            <div className="block text-sm text-text-muted">
-              <p className="mb-1">Demo images</p>
-              <p className="text-xs text-text-muted">Add 1 or 2 images for the compact preview, or more for the full gallery.</p>
-            </div>
-          </div>
-
-          <div className="space-y-3 rounded-lg border border-border bg-panel-2 p-4">
-            {(form.demoImages || [""]).map((image, index) => (
-              <div key={index} className="grid gap-2 md:grid-cols-[1fr_auto]">
-                <input
-                  value={image}
-                  onChange={(e) => updateDemoImage(index, e.target.value)}
-                  className={inputClass}
-                  placeholder={`Demo image URL ${index + 1}`}
-                />
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => removeDemoImage(index)}
-                    disabled={(form.demoImages || []).length <= 1}
-                    className="rounded-md border border-border px-3 py-2 text-sm text-text-muted disabled:cursor-not-allowed disabled:opacity-50"
-                  >
-                    Remove
-                  </button>
-                </div>
-              </div>
-            ))}
-            <button
-              type="button"
-              onClick={addDemoImage}
-              className="rounded-md border border-accent/40 px-3 py-2 text-sm font-medium text-accent hover:border-accent hover:bg-accent/10"
-            >
-              Add another image
-            </button>
+            <Field label="Image URL">
+              <input
+                value={form.imageUrl}
+                onChange={(e) => setForm({ ...form, imageUrl: e.target.value })}
+                className={inputClass}
+              />
+            </Field>
           </div>
 
           <div className="grid grid-cols-2 gap-4">

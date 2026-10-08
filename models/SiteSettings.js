@@ -8,14 +8,6 @@ const SkillGroupSchema = new mongoose.Schema(
   { _id: false }
 );
 
-const RAGItemSchema = new mongoose.Schema(
-  {
-    name: { type: String, required: true },
-    description: { type: String, default: "" },
-  },
-  { _id: false }
-);
-
 const SiteSettingsSchema = new mongoose.Schema(
   {
     key: { type: String, default: "main", unique: true },
@@ -23,12 +15,14 @@ const SiteSettingsSchema = new mongoose.Schema(
     // Hero
     name: { type: String, default: "Ibrar Yousafzai" },
     role: { type: String, default: "Data Scientist (Entry-Level) | AI & Machine Learning" },
-    eyebrow: { type: String, default: "AI Engineer · Data Scientist" },
+    foundingLine: { type: String, default: "Ibrar Yousafzai, AI Engineer, founder of Marjan Tech Labs." },
     heroTagline: {
       type: String,
       default:
         "I focus on Artificial Intelligence, Machine Learning, and data-driven analysis — building practical work that turns data into useful decisions.",
     },
+    avatarUrl: { type: String, default: "" },
+    faviconUrl: { type: String, default: "" },
 
     // About
     aboutIntro: { type: String, default: "" },
@@ -38,33 +32,6 @@ const SiteSettingsSchema = new mongoose.Schema(
 
     // Skills
     skills: { type: [SkillGroupSchema], default: [] },
-
-    // RAG models
-    ragIntro: {
-      type: String,
-      default:
-        "Retrieval-Augmented Generation connects language models to trusted business data, making answers more accurate, current, and useful.",
-    },
-    ragModelTypes: {
-      type: [RAGItemSchema],
-      default: [
-        { name: "Naive RAG", description: "Retrieve relevant chunks, then generate a grounded answer." },
-        { name: "Advanced RAG", description: "Improve retrieval with query rewriting, reranking, and hybrid search." },
-        { name: "Graph RAG", description: "Use entities and relationships to answer questions across connected data." },
-        { name: "Multimodal RAG", description: "Retrieve and reason over text, images, tables, and documents together." },
-      ],
-    },
-    ragIndustries: {
-      type: [RAGItemSchema],
-      default: [
-        { name: "Healthcare", description: "Search clinical knowledge and policy documents with traceable answers." },
-        { name: "Finance", description: "Query reports, regulations, and internal research with better control." },
-        { name: "Education", description: "Build learning assistants grounded in courses and institutional content." },
-        { name: "Legal", description: "Find clauses, precedents, and case evidence across large document sets." },
-        { name: "E-commerce", description: "Power product discovery and support from live catalog and policy data." },
-        { name: "Manufacturing", description: "Give teams fast access to manuals, maintenance, and safety knowledge." },
-      ],
-    },
 
     // Community
     communityName: { type: String, default: "Khyber Future Hub" },
@@ -87,6 +54,8 @@ const SiteSettingsSchema = new mongoose.Schema(
     // SEO
     metaTitle: { type: String, default: "" },
     metaDescription: { type: String, default: "" },
+    allowAiCrawlers: { type: Boolean, default: true },
+    llmsTxtSummary: { type: String, default: "" },
   },
   { timestamps: true }
 );

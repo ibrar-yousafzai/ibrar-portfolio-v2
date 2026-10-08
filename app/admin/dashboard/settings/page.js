@@ -44,28 +44,11 @@ function textToSkills(text) {
     });
 }
 
-function ragItemsToText(items) {
-  return (items || []).map((item) => `${item.name}: ${item.description || ""}`).join("\n");
-}
-
-function textToRagItems(text) {
-  return text
-    .split("\n")
-    .map((line) => line.trim())
-    .filter(Boolean)
-    .map((line) => {
-      const [name, description = ""] = line.split(":");
-      return { name: name.trim(), description: description.trim() };
-    });
-}
-
 export default function SettingsAdmin() {
   const [form, setForm] = useState(null);
   const [skillsText, setSkillsText] = useState("");
   const [howIWorkText, setHowIWorkText] = useState("");
   const [openToText, setOpenToText] = useState("");
-  const [ragModelTypesText, setRagModelTypesText] = useState("");
-  const [ragIndustriesText, setRagIndustriesText] = useState("");
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState("");
@@ -78,8 +61,6 @@ export default function SettingsAdmin() {
         setSkillsText(skillsToText(data.skills));
         setHowIWorkText((data.howIWork || []).join("\n"));
         setOpenToText((data.openTo || []).join("\n"));
-        setRagModelTypesText(ragItemsToText(data.ragModelTypes));
-        setRagIndustriesText(ragItemsToText(data.ragIndustries));
       });
   }, []);
 
@@ -97,8 +78,6 @@ export default function SettingsAdmin() {
       skills: textToSkills(skillsText),
       howIWork: howIWorkText.split("\n").map((s) => s.trim()).filter(Boolean),
       openTo: openToText.split("\n").map((s) => s.trim()).filter(Boolean),
-      ragModelTypes: textToRagItems(ragModelTypesText),
-      ragIndustries: textToRagItems(ragIndustriesText),
     };
     try {
       const res = await fetch("/api/content", {
@@ -151,6 +130,24 @@ export default function SettingsAdmin() {
               rows={2}
             />
           </Field>
+          <div className="grid grid-cols-2 gap-4">
+            <Field label="Profile photo URL" hint="Shown as your photo in the hero section">
+              <input
+                value={form.avatarUrl}
+                onChange={(e) => update("avatarUrl", e.target.value)}
+                className={inputClass}
+                placeholder="https://..."
+              />
+            </Field>
+            <Field label="Favicon URL" hint="Small icon shown in the browser tab">
+              <input
+                value={form.faviconUrl}
+                onChange={(e) => update("faviconUrl", e.target.value)}
+                className={inputClass}
+                placeholder="https://... (square image, e.g. 512x512)"
+              />
+            </Field>
+          </div>
         </Section>
 
         <Section title="About">
@@ -196,41 +193,6 @@ export default function SettingsAdmin() {
             <textarea
               value={skillsText}
               onChange={(e) => setSkillsText(e.target.value)}
-              className={inputClass}
-              rows={6}
-            />
-          </Field>
-        </Section>
-
-        <Section title="RAG models">
-          <Field
-            label="RAG overview"
-            hint="Explain what RAG is and how you use it in your portfolio."
-          >
-            <textarea
-              value={form.ragIntro || ""}
-              onChange={(e) => update("ragIntro", e.target.value)}
-              className={inputClass}
-              rows={3}
-            />
-          </Field>
-          <Field
-            label="RAG model types (one per line: Name: description)"
-            hint='Example: "Graph RAG: Connects entities and relationships across documents."'
-          >
-            <textarea
-              value={ragModelTypesText}
-              onChange={(e) => setRagModelTypesText(e.target.value)}
-              className={inputClass}
-              rows={5}
-            />
-          </Field>
-          <Field
-            label="Industries that need RAG (one per line: Industry: use case)"
-          >
-            <textarea
-              value={ragIndustriesText}
-              onChange={(e) => setRagIndustriesText(e.target.value)}
               className={inputClass}
               rows={6}
             />

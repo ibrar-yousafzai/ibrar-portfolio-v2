@@ -6,9 +6,15 @@ import { usePathname, useRouter } from "next/navigation";
 const NAV = [
   { href: "/admin/dashboard", label: "Overview" },
   { href: "/admin/dashboard/settings", label: "Site content" },
+  { href: "/admin/dashboard/experience", label: "Experience" },
   { href: "/admin/dashboard/projects", label: "Projects" },
   { href: "/admin/dashboard/certifications", label: "Certifications" },
   { href: "/admin/dashboard/events", label: "Events" },
+  { href: "/admin/dashboard/announcements", label: "Announcements" },
+  { href: "/admin/dashboard/rag-types", label: "RAG Types" },
+  { href: "/admin/dashboard/packages", label: "Packages" },
+  { href: "/admin/dashboard/faq", label: "FAQ" },
+  { href: "/admin/dashboard/case-studies", label: "Case Studies" },
 ];
 
 export default function DashboardShell({ children }) {

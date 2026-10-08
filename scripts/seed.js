@@ -12,10 +12,15 @@ async function run() {
   }
   await mongoose.connect(process.env.MONGODB_URI);
 
-  const SiteSettings = require("../models/SiteSettings");
-  const Project = require("../models/Project");
-  const Certification = require("../models/Certification");
-  const Event = require("../models/Event");
+  const loadModel = (name) => require(`../models/${name}`).default;
+  const SiteSettings = loadModel("SiteSettings");
+  const Project = loadModel("Project");
+  const Certification = loadModel("Certification");
+  const Event = loadModel("Event");
+  const RagType = loadModel("RagType");
+  const Package = loadModel("Package");
+  const FaqItem = loadModel("FaqItem");
+  const CaseStudy = loadModel("CaseStudy");
 
   await SiteSettings.findOneAndUpdate(
     { key: "main" },
@@ -63,7 +68,7 @@ async function run() {
       metaDescription:
         "Entry-level Data Scientist and AI/ML engineer building practical, explainable machine learning work.",
     },
-    { upsert: true, new: true }
+    { upsert: true, returnDocument: "after" }
   );
   console.log("Site settings seeded.");
 
@@ -105,6 +110,183 @@ async function run() {
     console.log("Sample certifications seeded.");
   }
 
+  const Experience = loadModel("Experience");
+  const Announcement = loadModel("Announcement");
+
+  if ((await Experience.countDocuments()) === 0) {
+    await Experience.insertMany([
+      {
+        title: "BS Computer Science (in progress)",
+        organization: "Your University",
+        type: "Education",
+        startDate: "2023",
+        endDate: "Present",
+        location: "Pakistan",
+        description: "Core coursework in programming, data structures, statistics, and machine learning.",
+        order: 0,
+      },
+      {
+        title: "Founder",
+        organization: "Khyber Future Hub",
+        type: "Volunteer",
+        startDate: "2024",
+        endDate: "Present",
+        description: "Built a community focused on learning, collaboration, and opportunity in AI and data.",
+        order: 1,
+      },
+    ]);
+    console.log("Sample experience entries seeded.");
+  }
+
+  if ((await Announcement.countDocuments()) === 0) {
+    await Announcement.insertMany([
+      {
+        title: "Google AI Essentials — free course",
+        category: "Free Course",
+        description: "A beginner-friendly introduction to practical AI tools and concepts, free on Coursera.",
+        linkUrl: "https://www.coursera.org/",
+        linkLabel: "View course",
+        date: "2026",
+        order: 0,
+      },
+    ]);
+    console.log("Sample announcement seeded.");
+  }
+  if ((await RagType.countDocuments()) === 0) {
+    await RagType.insertMany([
+      {
+        name: "Basic RAG",
+        slug: "basic-rag",
+        explanation: "Answers questions by searching your documents and generating a reply grounded in what it finds.",
+        bestFor: "Straightforward FAQs, policies, and product info.",
+        whenNotToUse: "When you need the assistant to take actions, not just answer questions.",
+        advanced: false,
+        order: 0,
+        status: "published",
+      },
+      {
+        name: "Hybrid RAG",
+        slug: "hybrid-rag",
+        explanation: "Combines keyword search with semantic search, so exact terms (SKUs, order numbers) and fuzzy meaning both work.",
+        bestFor: "Large catalogs or document sets where precision matters.",
+        whenNotToUse: "Small FAQ sets where basic search is already accurate enough.",
+        advanced: false,
+        order: 1,
+        status: "published",
+      },
+      {
+        name: "Agentic RAG",
+        slug: "agentic-rag",
+        explanation: "Can call tools — look up a real order, capture a lead, or hand off to a human — not just answer from text.",
+        bestFor: "Order status, lead capture, anything needing a live action.",
+        whenNotToUse: "Simple static FAQ pages with no systems to connect to.",
+        advanced: false,
+        order: 2,
+        status: "published",
+      },
+      {
+        name: "Graph RAG",
+        slug: "graph-rag",
+        explanation: "Maps relationships between entities in your data for multi-hop, connected questions.",
+        bestFor: "Complex internal knowledge bases with many linked records.",
+        whenNotToUse: "Most small businesses — this is usually overkill.",
+        advanced: true,
+        order: 3,
+        status: "published",
+      },
+      {
+        name: "Multimodal RAG",
+        slug: "multimodal-rag",
+        explanation: "Understands images and diagrams alongside text, not just written documents.",
+        bestFor: "Product photos, manuals with diagrams, visual catalogs.",
+        whenNotToUse: "Purely text-based support content.",
+        advanced: true,
+        order: 4,
+        status: "published",
+      },
+    ]);
+    console.log("RAG types seeded.");
+  }
+
+  if ((await Package.countDocuments()) === 0) {
+    await Package.insertMany([
+      {
+        name: "Pilot",
+        priceText: "TODO",
+        billingNote: "one-time setup",
+        features: ["Basic RAG on your existing docs", "1 integration (e.g. website chat)", "2 weeks of support"],
+        highlighted: false,
+        order: 0,
+        status: "published",
+      },
+      {
+        name: "Setup + Launch",
+        priceText: "TODO",
+        billingNote: "one-time setup fee",
+        features: ["Hybrid or Agentic RAG", "Order lookup / lead capture tools", "Human handoff built in"],
+        highlighted: true,
+        order: 1,
+        status: "published",
+      },
+      {
+        name: "Monthly Care",
+        priceText: "TODO",
+        billingNote: "per month",
+        features: ["Ongoing monitoring", "Content updates as your docs change", "Monthly accuracy report"],
+        highlighted: false,
+        order: 2,
+        status: "published",
+      },
+    ]);
+    console.log("Packages seeded.");
+  }
+
+  if ((await FaqItem.countDocuments()) === 0) {
+    await FaqItem.insertMany([
+      {
+        question: "How long does setup take?",
+        answer: "A basic assistant can be live in days once I have access to your documents or policies.",
+        order: 0,
+        status: "published",
+      },
+      {
+        question: "What happens when the assistant doesn't know the answer?",
+        answer: "It says so honestly and hands the conversation to your team, rather than guessing.",
+        order: 1,
+        status: "published",
+      },
+      {
+        question: "Can it look up real order data?",
+        answer: "Yes, with the Agentic RAG approach — it can connect to your order system to pull live status.",
+        order: 2,
+        status: "published",
+      },
+    ]);
+    console.log("FAQ items seeded.");
+  }
+
+  if ((await CaseStudy.countDocuments()) === 0) {
+    await CaseStudy.insertMany([
+      {
+        title: "Bankly",
+        summary: "",
+        tags: ["Finance"],
+        isTodoPlaceholder: true,
+        order: 0,
+        status: "published",
+      },
+      {
+        title: "AI E-Commerce Shopping Assistant",
+        summary: "",
+        tags: ["E-commerce"],
+        isTodoPlaceholder: true,
+        order: 1,
+        status: "published",
+      },
+    ]);
+    console.log("Case study placeholders seeded — add real summaries in the admin.");
+  }
+  
   console.log("Done. Events were left empty — add real ones from the admin dashboard.");
   await mongoose.disconnect();
 }
